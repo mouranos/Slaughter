@@ -23,7 +23,7 @@ file(GLOB SRC "main_fps/*" "common/*")
 add_executable(${PROJECT_NAME} ${SRC})
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 14)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-target_include_directories(${PROJECT_NAME} PRIVATE
+include_directories(
     ${OPENGL_INCLUDE_DIR}
     ${GLEW_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
@@ -31,6 +31,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${OPENAL_INCLUDE_DIR}
     ${ALURE_INCLUDE_DIR}
     ${PHYSFS_INCLUDE_DIR}
+    ${BULLET_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
 )
@@ -42,4 +43,5 @@ target_link_libraries(${PROJECT_NAME}
     ${OPENAL_LIBRARY}
     ${ALURE_LIBRARY}
     ${PHYSFS_LIBRARY}
+    ${BULLET_LIBRARIES}
 )
