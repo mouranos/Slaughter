@@ -33,7 +33,7 @@ void computeMatricesFromInputs()
     horizontalAngle += mouseSpeed * float(xnpos / 2 - xpos);
     verticalAngle += mouseSpeed * float(ynpos / 2 - ypos);
     glm::vec3 direction(cos(verticalAngle) * sin(horizontalAngle),
-                        1,
+                        cos(verticalAngle),
                         cos(verticalAngle) * cos(horizontalAngle));
 //    glm::vec3 direction(cos(verticalAngle) * sin(horizontalAngle),
 //                        sin(verticalAngle),
