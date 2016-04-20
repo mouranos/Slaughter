@@ -12,7 +12,8 @@
 #include <common/objloader.hpp>
 #include <common/vboindexer.hpp>
 #include <common/bulletfunc.hpp>
-#include <main/main.hpp>
+#include <common/windowCreater.hpp>
+#include "main.hpp"
 
 GLFWwindow* window;
 btDynamicsWorld* dynamicsWorld;
@@ -20,29 +21,7 @@ btRigidBody* groundBody;
 
 
 void start_fps(){
-    if(!glfwInit()){
-        fprintf(stderr,"Failed to initialize GLFW\n");
-    }
-
-    glfwWindowHint(GLFW_SAMPLES,4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,1);
-
-
-
-    window = glfwCreateWindow(1440,900,"文化祭 FPS",glfwGetPrimaryMonitor(),NULL);
-
-    if(window==NULL){
-        fprintf(stderr,"Failed to open GLFW\n");
-        glfwTerminate();
-    }
-
-    glfwMakeContextCurrent(window);
-
-    if(glewInit() != GLEW_OK){
-        fprintf(stderr,"Failed to initialize GLEW\n");
-        glfwTerminate();
-    }
+    windowInit(1440,900,"開成祭 FPS");
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     glfwSetInputMode(window, GLFW_CURSOR,GLFW_CURSOR_DISABLED);
@@ -120,63 +99,56 @@ void start_fps(){
         glm::vec3 lightPos = glm::vec3(4,4,4);
         glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
 
-        // Bind our texture in Texture Unit 0
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, Texture);
-        // Set our "myTextureSampler" sampler to user Texture Unit 0
+
         glUniform1i(TextureID, 0);
 
-        // 1rst attribute buffer : vertices
         glEnableVertexAttribArray(vertexPosition_modelspaceID);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
-            vertexPosition_modelspaceID,  // The attribute we want to configure
-            3,                            // size
-            GL_FLOAT,                     // type
-            GL_FALSE,                     // normalized?
-            0,                            // stride
-            (void*)0                      // array buffer offset
+            vertexPosition_modelspaceID,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void*)0
         );
 
-        // 2nd attribute buffer : UVs
         glEnableVertexAttribArray(vertexUVID);
         glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
         glVertexAttribPointer(
-            vertexUVID,                   // The attribute we want to configure
-            2,                            // size : U+V => 2
-            GL_FLOAT,                     // type
-            GL_FALSE,                     // normalized?
-            0,                            // stride
-            (void*)0                      // array buffer offset
+            vertexUVID,
+            2,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void*)0
         );
 
-        // 3rd attribute buffer : normals
         glEnableVertexAttribArray(vertexNormal_modelspaceID);
         glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
         glVertexAttribPointer(
-            vertexNormal_modelspaceID,    // The attribute we want to configure
-            3,                            // size
-            GL_FLOAT,                     // type
-            GL_FALSE,                     // normalized?
-            0,                            // stride
-            (void*)0                      // array buffer offset
+            vertexNormal_modelspaceID,
+            3,
+            GL_FLOAT,
+            GL_FALSE,
+            0,
+            (void*)0
         );
 
-        // Index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 
-        // Draw the triangles !
         glDrawElements(
-            GL_TRIANGLES,      // mode
-            indices.size(),    // count
-            GL_UNSIGNED_SHORT, // type
-            (void*)0           // element array buffer offset
+            GL_TRIANGLES,
+            indices.size(),
+            GL_UNSIGNED_SHORT,
+            (void*)0
         );
 
         glDisableVertexAttribArray(vertexPosition_modelspaceID);
         glDisableVertexAttribArray(vertexUVID);
         glDisableVertexAttribArray(vertexNormal_modelspaceID);
-
 
         glfwSwapBuffers(window);
         glfwPollEvents();
