@@ -1,27 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <btBulletDynamicsCommon.h>
+
 #include <common/shader.hpp>
 #include <common/texture.hpp>
 #include <common/controls.hpp>
 #include <common/objloader.hpp>
 #include <common/vboindexer.hpp>
-#include <common/bulletfunc.hpp>
 #include <common/windowCreater.hpp>
 #include "main.hpp"
 
-GLFWwindow* window;
-btDynamicsWorld* dynamicsWorld;
-btRigidBody* groundBody;
+extern GLFWwindow* window;
 
 
-void start_fps(){
-    windowInit(1440,900,"開成祭 FPS");
+bool start_fps(){
+    if(!windowInit(1440,900,"開成祭 FPS"))
+        return false;
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     glfwSetInputMode(window, GLFW_CURSOR,GLFW_CURSOR_DISABLED);
@@ -30,9 +30,6 @@ void start_fps(){
     glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-
-    initWorld();
-    initObject();
 
 
     GLuint programID = LoadShaders("mainVertexShader.vertexshader","mainFragmentShader.fragmentshader");
@@ -45,39 +42,27 @@ void start_fps(){
     GLuint vertexUVID = glGetAttribLocation(programID, "vertexUV");
     GLuint vertexNormal_modelspaceID = glGetAttribLocation(programID, "vertexNormal_modelspace");
 
-    GLuint Texture = loadDDS("../materials/Guns/RifleObj/M1Rifle.jpg");
+    GLuint m16Texture = loadBMP_custom("materials/Guns/m16/m16.bmp");
+
     GLuint TextureID = glGetUniformLocation(programID, "myTexturesamplar");
 
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normals;
-    loadOBJ("../materials/Guns/RifleObj/RifleObj.obj", vertices, uvs, normals);
+    loadOBJ m16obj("materials/Guns/m16/m16.obj",0);
 
-    std::vector<unsigned short> indices;
-    std::vector<glm::vec3> indexed_vertices;
-    std::vector<glm::vec2> indexed_uvs;
-    std::vector<glm::vec3> indexed_normals;
-    indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 
-    GLuint vertexbuffer;
-    glGenBuffers(1, &vertexbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-    glBufferData(GL_ARRAY_BUFFER, indexed_vertices.size() * sizeof(glm::vec3), &indexed_vertices[0], GL_STATIC_DRAW);
+    GLuint m16_vertexbuffer;
+    glGenBuffers(1, &m16_vertexbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m16_vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m16obj.vertices.size() * sizeof(glm::vec3), &m16obj.vertices[0], GL_STATIC_DRAW);
 
-    GLuint uvbuffer;
-    glGenBuffers(1, &uvbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
-    glBufferData(GL_ARRAY_BUFFER, indexed_uvs.size() * sizeof(glm::vec2), &indexed_uvs[0], GL_STATIC_DRAW);
+    GLuint m16_uvbuffer;
+    glGenBuffers(1, &m16_uvbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, m16_uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, m16obj.uvs.size() * sizeof(glm::vec2), &m16obj.uvs[0], GL_STATIC_DRAW);
 
-    GLuint normalbuffer;
-    glGenBuffers(1, &normalbuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-    glBufferData(GL_ARRAY_BUFFER, indexed_normals.size() * sizeof(glm::vec3), &indexed_normals[0], GL_STATIC_DRAW);
-
-    GLuint elementbuffer;
-    glGenBuffers(1, &elementbuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned short), &indices[0], GL_STATIC_DRAW);
+    GLuint m16_elementbuffer;
+    glGenBuffers(1, &m16_elementbuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m16_elementbuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m16obj.indices.size() * sizeof(unsigned short), &m16obj.indices[0], GL_STATIC_DRAW);
 
     glUseProgram(programID);
     GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
@@ -100,12 +85,12 @@ void start_fps(){
         glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, Texture);
+        glBindTexture(GL_TEXTURE_2D, m16Texture);
 
         glUniform1i(TextureID, 0);
 
         glEnableVertexAttribArray(vertexPosition_modelspaceID);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m16_vertexbuffer);
         glVertexAttribPointer(
             vertexPosition_modelspaceID,
             3,
@@ -116,7 +101,7 @@ void start_fps(){
         );
 
         glEnableVertexAttribArray(vertexUVID);
-        glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m16_uvbuffer);
         glVertexAttribPointer(
             vertexUVID,
             2,
@@ -126,22 +111,11 @@ void start_fps(){
             (void*)0
         );
 
-        glEnableVertexAttribArray(vertexNormal_modelspaceID);
-        glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
-        glVertexAttribPointer(
-            vertexNormal_modelspaceID,
-            3,
-            GL_FLOAT,
-            GL_FALSE,
-            0,
-            (void*)0
-        );
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m16_elementbuffer);
 
         glDrawElements(
             GL_TRIANGLES,
-            indices.size(),
+            m16obj.indices.size(),
             GL_UNSIGNED_SHORT,
             (void*)0
         );
@@ -156,5 +130,13 @@ void start_fps(){
     }while(glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
            glfwWindowShouldClose(window) == 0 );
 
+    glDeleteBuffers(1,&m16_vertexbuffer);
+    glDeleteBuffers(1,&m16_uvbuffer);
+    glDeleteBuffers(1,&m16_elementbuffer);
+    glDeleteProgram(programID);
+    glDeleteTextures(1, &m16Texture);
+
     glfwTerminate();
+
+    return true;
 }

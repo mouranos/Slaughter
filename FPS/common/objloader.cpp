@@ -5,6 +5,7 @@
 
 #include <glm/glm.hpp>
 
+#include <common/vboindexer.hpp>
 #include "objloader.hpp"
 
 // Very, VERY simple OBJ loader.
@@ -97,6 +98,7 @@ loadOBJ::loadOBJ(const char * path){
 		out_normals .push_back(normal);
 	
 	}
+    indexVBO(out_vertices,out_uvs,out_normals,indices,vertices,uvs,normals);
 }
 
 loadOBJ::loadOBJ(const char* path,int d){
@@ -167,7 +169,8 @@ loadOBJ::loadOBJ(const char* path,int d){
         out_vertices.push_back(vertex);
         out_uvs     .push_back(uv);
     }
-};
+    indexVBO(out_vertices,out_uvs,indices,vertices,uvs);
+}
 
 
 #ifdef USE_ASSIMP // don't use this #define, it's only for me (it AssImp fails to compile on your machine, at least all the other tutorials still work)

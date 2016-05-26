@@ -1,4 +1,4 @@
 #ifndef MAIN_H
 #define MAIN_H
-void start_fps();
+bool start_fps();
 #endif
