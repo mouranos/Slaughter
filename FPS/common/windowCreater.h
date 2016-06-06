@@ -5,10 +5,12 @@ class Window
 {
 private:
     GLFWwindow* window;
-    bool error;
+    unsigned int width;
+    unsigned int height;
+    const char* title;
 public:
-    Window(int width, int height, const char* title);
-    bool getError();
+    Window(unsigned int width, unsigned int height, const char* title);
+    bool windowInit();
     GLFWwindow* getWindowptr();
 };
 
