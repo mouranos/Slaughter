@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <GLFW/glfw3.h>
-extern GLFWwindow *window;
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-using namespace glm;
 #include "controls.hpp"
+extern GLFWwindow *window;
+
 glm::mat4 ViewMatrix;
 glm::mat4 ProjectionMatrix;
+
 glm::mat4 getViewMatrix()
 {
     return ViewMatrix;
@@ -34,7 +35,7 @@ void computeMatricesFromInputs()
     glfwGetCursorPos(window, &xpos, &ypos);
     glfwSetCursorPos(window, xnpos / 2, ynpos / 2);
     horizontalAngle += mouseSpeed * float(xnpos / 2 - xpos);
-    verticalAngle -= mouseSpeed * float(ynpos / 2 - ypos);
+    verticalAngle += mouseSpeed * float(ynpos / 2 - ypos);
 //    glm::vec3 direction(cos(verticalAngle) * sin(horizontalAngle),
 //                        cos(verticalAngle),
 //                        cos(verticalAngle) * cos(horizontalAngle));
@@ -43,28 +44,28 @@ void computeMatricesFromInputs()
                         cos(verticalAngle) * cos(horizontalAngle));
     glm::vec3 right =
         glm::vec3(sin(horizontalAngle - 3.14f / 2.0f), 0, cos(horizontalAngle - 3.14f / 2.0f));
-    glm::vec3 up = -glm::cross(right, direction);
+    glm::vec3 up = glm::cross(right, direction);
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        position += direction * deltaTime * speed;
+        position += glm::vec3(sin(horizontalAngle),0,cos(horizontalAngle)) * deltaTime * speed;
     }
     if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        position -= direction * deltaTime * speed;
+        position -= glm::vec3(sin(horizontalAngle),0,cos(horizontalAngle)) * deltaTime * speed;
     }
     if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        position -= right * deltaTime * speed;
+        position += right * deltaTime * speed;
     }
     if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        position += right * deltaTime * speed;
+        position -= right * deltaTime * speed;
     }
     if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS){
-        position += up * deltaTime * speed;
+        position += glm::vec3(0,1,0) * deltaTime * speed;
     }
     if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS){
-        position -= up * deltaTime * speed;
+        position -= glm::vec3(0,1,0) * deltaTime * speed;
     }
     if(logflag){
         if(glfwGetKey(window, GLFW_KEY_G) == GLFW_PRESS){
