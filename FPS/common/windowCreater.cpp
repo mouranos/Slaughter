@@ -2,32 +2,43 @@
 #include <stdlib.h>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "windowCreater.hpp"
+#include "windowCreater.h"
 
-extern GLFWwindow* window;
+Window::Window(int width, int height, const char* title)
+{
+    Window::error = false;
 
-bool windowInit(int windowWidth, int windowHeight,const char* title){
     if(!glfwInit()){
         fprintf(stderr, "Failed to initialize GLFW\n");
-        return false;
+        error = true;
     }
+
     glfwWindowHint(GLFW_SAMPLES,4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,2);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,1);
 
-    window = glfwCreateWindow(windowWidth,windowHeight,title,NULL,NULL);
+    Window::window = glfwCreateWindow(width, height, title, NULL, NULL);
     glfwMakeContextCurrent(window);
 
     if(window==NULL){
         fprintf(stderr, "Failed to open GLFW\n");
         glfwTerminate();
-        return false;
+        error = true;
     }
 
     if(glewInit()!=GLEW_OK){
         fprintf(stderr, "Failed to Initialize GLEW\n");
         glfwTerminate();
-        return false;
+        error = true;
     }
-    return true;
+}
+
+bool Window::getError()
+{
+    return error;
+}
+
+GLFWwindow* Window::getWindowptr()
+{
+    return window;
 }
