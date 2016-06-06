@@ -4,7 +4,7 @@
 #include <glm/gtx/norm.hpp>
 using namespace glm;
 
-#include "quaternion_utils.hpp"
+#include "quaternion_utils.h"
 
 
 // Returns a quaternion such that q*start = dest

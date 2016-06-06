@@ -5,8 +5,8 @@
 
 #include <glm/glm.hpp>
 
-#include <common/vboindexer.hpp>
-#include "objloader.hpp"
+#include <common/vboindexer.h>
+#include "objloader.h"
 
 // Very, VERY simple OBJ loader.
 // Here is a short list of features a real function would provide : 

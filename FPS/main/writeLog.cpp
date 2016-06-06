@@ -1,4 +1,4 @@
-#include "count.hpp"
+#include "writeLog.h"
 #include <stdio.h>
 #include <time.h>
 

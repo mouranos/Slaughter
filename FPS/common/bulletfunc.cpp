@@ -1,5 +1,5 @@
 #include "btBulletDynamicsCommon.h"
-#include "bulletfunc.hpp"
+#include "bulletfunc.h"
 #include <GL/freeglut.h>
 
 

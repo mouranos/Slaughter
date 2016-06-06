@@ -7,10 +7,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
 
-#include "shader.hpp"
-#include "texture.hpp"
+#include "shader.h"
+#include "texture.h"
 
-#include "text2D.hpp"
+#include "text2D.h"
 
 unsigned int Text2DTextureID;              // Texture containing the font
 unsigned int Text2DVertexBufferID;         // Buffer containing the vertices
