@@ -1,13 +1,22 @@
 #ifndef BULLETFUNC_H
 #define BULLETFUNC_H
 
-extern btDynamicsWorld* dynamicsWorld;
-extern btRigidBody* groundBody;
+#include "btBulletDynamicsCommon.h"
 
-void initializer();
-void initWorld();
-void initObject();
-void display();
-void deleter();
+constexpr double RADIAN = 180.0/3.1415;
+
+class DynamicsWorld{
+public:
+    DynamicsWorld();
+    ~DynamicsWorld();
+    void initWorld();
+    void initObject();
+    void simulate();
+    void display();
+    void deleter();
+private:
+    btDynamicsWorld* dynamicsWorld;
+    btRigidBody* groundBody;
+};
 
 #endif
