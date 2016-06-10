@@ -1,10 +1,10 @@
-#include "writeLog.h"
+#include "writelog.h"
 #include <stdio.h>
 #include <time.h>
 
-bool log(const char *username, const int score)
+bool log(std::string username, const int score)
 {
-    const char *logfile = "log.txt";
+    const char *logfile = "log/log.txt";
     FILE *file = fopen(logfile, "a");
     if(file == NULL)
     {
@@ -13,12 +13,14 @@ bool log(const char *username, const int score)
     }
 
     time_t tnow;
-    char *cnow;
+    char* cnow;
     time(&tnow);
     cnow = ctime(&tnow);
 
-    fprintf(file, "%susername: %s | score: %d\n", cnow, username, score);
+
+    fprintf(file, "%susername: %s | score: %d\n", time, username, score);
 
     fclose(file);
     return true;
 }
+
