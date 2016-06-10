@@ -3,8 +3,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "controls.h"
-extern GLFWwindow *window;
-
 glm::mat4 ViewMatrix;
 glm::mat4 ProjectionMatrix;
 
@@ -22,9 +20,9 @@ float verticalAngle   = 0.0f;
 float initialFov      = 45.0f;
 float speed           = 30.0f;
 float mouseSpeed = 0.0025f;
-const char* logpath = "location.txt";
+const char* logpath = "log/location.txt";
 bool logflag = 1;
-void computeMatricesFromInputs()
+void computeMatricesFromInputs(GLFWwindow* window)
 {
     static double lastTime = glfwGetTime();
     double currentTime     = glfwGetTime();

@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 
-#include <common/vboindexer.h>
+#include <util/vboindexer.h>
 #include "objloader.h"
 
 // Very, VERY simple OBJ loader.

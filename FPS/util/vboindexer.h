@@ -1,6 +1,11 @@
 #ifndef VBOINDEXER_HPP
 #define VBOINDEXER_HPP
 
+#include <vector>
+#include <map>
+
+#include <glm/glm.hpp>
+
 void indexVBO(
 	std::vector<glm::vec3> & in_vertices,
 	std::vector<glm::vec2> & in_uvs,
