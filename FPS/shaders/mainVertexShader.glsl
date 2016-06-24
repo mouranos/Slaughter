@@ -2,11 +2,13 @@
 
 // Input vertex data, different for all executions of this shader.
 attribute vec3 vertexPosition_modelspace;
+attribute vec3 vertexColor;
 attribute vec2 vertexUV;
 attribute vec3 vertexNormal_modelspace;
 
 // Output data ; will be interpolated for each fragment.
 varying vec2 UV;
+varying vec3 fragmentColor;
 varying vec3 Position_worldspace;
 varying vec3 Normal_cameraspace;
 varying vec3 EyeDirection_cameraspace;
@@ -20,7 +22,8 @@ uniform vec3 LightPosition_worldspace;
 
 void main()
 {
-
+    // Ground color
+    fragmentColor = vertexColor;
     // Output position of the vertex, in clip space : MVP * position
     gl_Position = MVP * vec4(vertexPosition_modelspace, 1);
 
