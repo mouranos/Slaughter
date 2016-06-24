@@ -28,3 +28,8 @@ Window::Window(unsigned int width, unsigned int height, std::string title)
         glfwTerminate();
     }
 }
+
+Window::~Window()
+{
+    glfwTerminate();
+}

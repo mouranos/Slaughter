@@ -1,11 +1,9 @@
-#include "writeLog.h"
+#include "writelog.h"
 #include "main.h"
 #include "title.h"
 #include <GLFW/glfw3.h>
 #include <btBulletDynamicsCommon.h>
-#include <common/bulletfunc.h>
-
-GLFWwindow* window;
+#include <util/bulletfunc.h>
 
 int main()
 {

@@ -101,7 +101,7 @@ loadOBJ::loadOBJ(const char * path){
     indexVBO(out_vertices,out_uvs,out_normals,indices,vertices,uvs,normals);
 }
 
-loadOBJ::loadOBJ(const char* path,int d){
+loadOBJ::loadOBJ(const char* path,int dummy){
     printf("Loading OBJ file %s...\n", path);
 
     std::vector<unsigned int> vertexIndices, uvIndices;

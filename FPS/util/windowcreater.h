@@ -9,7 +9,7 @@ class Window
 {
 public:
     Window(unsigned int width, unsigned int height, std::string title);
-    //~Window(); //TODO: homework
+    ~Window();
     operator GLFWwindow*() { return window_;}
 
 private:

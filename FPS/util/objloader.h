@@ -4,7 +4,7 @@
 class loadOBJ{
 public:
     loadOBJ(const char* path);
-    loadOBJ(const char* path,int d);
+    loadOBJ(const char* path,int dummy);
     std::vector<glm::vec3> out_vertices;
     std::vector<glm::vec2> out_uvs;
     std::vector<glm::vec3> out_normals;
