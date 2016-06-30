@@ -9,10 +9,10 @@
 
 class RenderText{
 public:
-    RenderText(std::u32string text,unsigned int text_size, float x, float y);
+    RenderText(std::u32string text,unsigned int text_size);
     ~RenderText();
 
-    void render(float x, float y, GLuint vertexPositionID, GLuint vertexUVID, GLint TextureID);
+    void render(float initialx, float initialy, float movingx = 0, float movingy = 0);
 
 private:
     FT_Face face;
@@ -22,6 +22,10 @@ private:
     std::vector<GLuint> char_textures;
     std::vector<GLuint> vertexbuffer;
     GLuint uvbuffer;
+    GLuint programID;
+    GLuint vertexPositionID;
+    GLuint vertexUVID;
+    GLuint textureID;
 };
 
 #endif

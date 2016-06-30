@@ -4,23 +4,33 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <stdexcept>
+#include <util/shader.h>
 #include "textrenderer.h"
 
-RenderText::RenderText(std::u32string text, unsigned int text_size, float x, float y):text_(std::move(text))
+RenderText::RenderText(std::u32string text, unsigned int text_size)
+    : text_(std::move(text))
 {
     int error;
-    vertex_buffer_data.reserve(text_.length());
-    vertexbuffer.reserve(text_.length());
-    char_textures.reserve(text_.length());
-    error = FT_Init_FreeType(&library); 
-    if(error)
+    float x=0,y=0;
+    vertex_buffer_data.resize(text_.length());
+    vertexbuffer.resize(text_.length());
+    char_textures.resize(text_.length());
+
+    programID = LoadShaders("shaders/textRenderVertexShader.glsl","shaders/textRenderFragmentShader.glsl");
+
+    vertexPositionID =
+        glGetAttribLocation(programID, "vertexPosition_screenspace");
+    vertexUVID = glGetAttribLocation(programID, "vertexUV");
+    textureID = glGetUniformLocation(programID, "myTextureSampler");
+
+    if(FT_Init_FreeType(&library) != 0)
     {
-        throw std::runtime_error("An error occurred during FreeType library initialization.");
+        throw std::runtime_error(
+            "An error occurred during FreeType library initialization.");
     }
 
-    error = FT_New_Face(
-        library, "/usr/share/fonts/noto/NotoSansCJK-Regular.ttc", 0, &face);
-    if(error)
+    if(FT_New_Face(library, "/usr/share/fonts/noto/NotoSansCJK-Regular.ttc", 0,
+                   &face) != 0)
     {
         fprintf(stderr,
                 "An error occured during loading fonts from memory %d.\n",
@@ -87,39 +97,53 @@ RenderText::RenderText(std::u32string text, unsigned int text_size, float x, flo
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(uv_buffer_data), uv_buffer_data,
                  GL_STATIC_DRAW);
-
 }
 
-void RenderText::render(float x, float y, GLuint vertexPositionID, GLuint vertexUVID, GLint TextureID)
+void RenderText::render(float initialx, float initialy, float movingx, float movingy)
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glUseProgram(programID);
+
+    decltype(vertex_buffer_data) buffer_data(vertex_buffer_data);
+
+    for(int i = 0; i < vertex_buffer_data.size(); i++)
+    {
+        for(int j = 0; j < 4; j++)
+        {
+            buffer_data[i][j][0] += initialx;
+            buffer_data[i][j][1] += initialy;
+        }
+    }
 
     for(int i = 0; i < text_.length(); i++)
     {
         for(int j = 0; j < 4; j++)
         {
-            vertex_buffer_data[i][j][0] += x;
-            vertex_buffer_data[i][j][1] += y;
+            buffer_data[i][j][0] += movingx;
+            buffer_data[i][j][1] += movingy;
         }
         glGenBuffers(text_.length(), vertexbuffer.data());
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[i]);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data[i]),
-                     &vertex_buffer_data[i], GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(buffer_data[i]),
+                     &buffer_data[i], GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(vertexPositionID);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[i]);
-        glVertexAttribPointer(vertexPositionID, 2, GL_FLOAT,
-                              GL_FALSE, 0, static_cast<GLvoid*>(0));
+        glVertexAttribPointer(vertexPositionID, 2, GL_FLOAT, GL_FALSE, 0,
+                              static_cast<GLvoid*>(0));
 
         glBindTexture(GL_TEXTURE_2D, char_textures[i]);
 
-        glUniform1i(TextureID, 0);
+        glUniform1i(textureID, 0);
         glEnableVertexAttribArray(vertexUVID);
         glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
         glVertexAttribPointer(vertexUVID, 2, GL_FLOAT, GL_FALSE, 0,
                               static_cast<GLvoid*>(0));
         glDrawArrays(GL_QUADS, 0, 4);
+
+        glDeleteBuffers(vertex_buffer_data.size(), vertexbuffer.data());
     }
     glDisable(GL_BLEND);
 
@@ -127,11 +151,11 @@ void RenderText::render(float x, float y, GLuint vertexPositionID, GLuint vertex
     glDisableVertexAttribArray(vertexUVID);
 }
 
-RenderText::~RenderText(){
+RenderText::~RenderText()
+{
     FT_Done_Face(face);
     FT_Done_FreeType(library);
     glDeleteTextures(char_textures.size(), char_textures.data());
     glDeleteBuffers(1, &uvbuffer);
-    glDeleteBuffers(vertex_buffer_data.size(), vertexbuffer.data());
-
+    glDeleteProgram(programID);
 }
