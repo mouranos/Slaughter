@@ -2,7 +2,6 @@
 
 // Input vertex data, different for all executions of this shader.
 attribute vec3 vertexPosition_modelspace;
-attribute vec3 vertexColor;
 attribute vec2 vertexUV;
 attribute vec3 vertexNormal_modelspace;
 
@@ -15,20 +14,18 @@ varying vec3 EyeDirection_cameraspace;
 varying vec3 LightDirection_cameraspace;
 
 // Values that stay constant for the whole mesh.
-uniform mat4 MVP;
+uniform mat4 P;
 uniform mat4 V;
 uniform mat4 M;
 uniform vec3 LightPosition_worldspace;
 
 void main()
 {
-    // Ground color
-    fragmentColor = vertexColor;
     // Output position of the vertex, in clip space : MVP * position
-    gl_Position = MVP * vec4(vertexPosition_modelspace, 1);
+    gl_Position = P * V * M * vec4(vertexPosition_modelspace, 1);
 
     // Position of the vertex, in worldspace : M * position
-    Position_worldspace = (M * vec4(vertexPosition_modelspace, 1)).xyz;
+//    Position_worldspace = (M * vec4(vertexPosition_modelspace, 1)).xyz;
 
     // Vector that goes from the vertex to the camera, in camera space.
     // In camera space, the camera is at the origin (0,0,0).
@@ -41,16 +38,17 @@ void main()
     vec3 LightPosition_cameraspace =
         (V * vec4(LightPosition_worldspace, 1)).xyz;
     LightDirection_cameraspace =
-        LightPosition_cameraspace + EyeDirection_cameraspace;
+        LightPosition_cameraspace + EyeDirection_ cameraspace;
 
     // Normal of the the vertex, in camera space
-    Normal_cameraspace =
-        (V * M * vec4(vertexNormal_modelspace, 0)).xyz; // Only correct if
-                                                        // ModelMatrix does not
-                                                        // scale the model ! Use
-                                                        // its inverse transpose
-                                                        // if not.
+//    Normal_cameraspace =
+//        (V * M * vec4(vertexNormal_modelspace, 0)).xyz; // Only correct if
+//                                                        // ModelMatrix does not
+//                                                        // scale the model ! Use
+//                                                        // its inverse transpose
+//                                                        // if not.
 
     // UV of the vertex. No special space for this one.
     UV = vertexUV;
+
 }
