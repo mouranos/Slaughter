@@ -9,7 +9,6 @@ find_package(GLM REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(ALURE REQUIRED)
 find_package(PhysFS REQUIRED)
-find_package(GLUT REQUIRED)
 find_package(Freetype REQUIRED)
 
 if( CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR )
@@ -34,7 +33,6 @@ include_directories(
     ${ALURE_INCLUDE_DIR}
     ${PHYSFS_INCLUDE_DIR}
     ${BULLET_INCLUDE_DIRS}
-    ${GLUT_INCLUDE_DIR}
     ${FREETYPE_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
@@ -48,6 +46,5 @@ target_link_libraries(${PROJECT_NAME}
     ${ALURE_LIBRARY}
     ${PHYSFS_LIBRARY}
     ${BULLET_LIBRARIES}
-    ${GLUT_LIBRARIES}
     ${FREETYPE_LIBRARIES}
 )
