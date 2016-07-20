@@ -1,17 +1,26 @@
 #ifndef OBJLOADER_H
 #define OBJLOADER_H
 
+#include <vector>
+#include <glm/glm.hpp>
+#include <GL/glew.h>
+
 class loadOBJ{
 public:
     loadOBJ(const char* path);
-    loadOBJ(const char* path,int dummy);
-    std::vector<glm::vec3> out_vertices;
-    std::vector<glm::vec2> out_uvs;
-    std::vector<glm::vec3> out_normals;
-    std::vector<unsigned short> indices;
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normals;
+    std::vector<unsigned short> getIndices(){return indices_;}
+    std::vector<glm::vec3> getIndexedVertices(){return indexedVertices_;}
+    std::vector<glm::vec2> getIndexedUvs(){return indexedUvs_;}
+    std::vector<glm::vec3> getIndexedNormals(){return indexedNormals_;}
+
+private:
+    std::vector<glm::vec3> vertices_;
+    std::vector<glm::vec2> uvs_;
+    std::vector<glm::vec3> normals_;
+    std::vector<unsigned short> indices_;
+    std::vector<glm::vec3> indexedVertices_;
+    std::vector<glm::vec2> indexedUvs_;
+    std::vector<glm::vec3> indexedNormals_;
 };
 
 //bool loadAssImp(
