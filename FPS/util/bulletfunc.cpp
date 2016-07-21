@@ -1,26 +1,14 @@
-#include "btBulletDynamicsCommon.h"
 #include "bulletfunc.h"
-#include <GL/freeglut.h>
-
+#include "btBulletDynamicsCommon.h"
+#include <GL/glew.h>
 
 DynamicsWorld::DynamicsWorld()
+    : config(), dispatcher(&config), broadphase(), solver()
 {
-    initWorld();
-    initObject();
-}
-
-
-void DynamicsWorld::initWorld()
-{
-    btDefaultCollisionConfiguration* config =
-        new btDefaultCollisionConfiguration();
-    btCollisionDispatcher* dispatcher = new btCollisionDispatcher(config);
-    btDbvtBroadphase* broadphase = new btDbvtBroadphase();
-    btSequentialImpulseConstraintSolver* solver =
-        new btSequentialImpulseConstraintSolver();
     dynamicsWorld =
-        new btDiscreteDynamicsWorld(dispatcher, broadphase, solver, config);
+        new btDiscreteDynamicsWorld(&dispatcher, &broadphase, &solver, &config);
     dynamicsWorld->setGravity(btVector3(0, -9.8, 0));
+    initObject();
 }
 
 void DynamicsWorld::initObject()
@@ -47,10 +35,39 @@ void DynamicsWorld::initObject()
     dynamicsWorld->addRigidBody(groundBody);
 }
 
+void DynamicsWorld::addRigidBody(btRigidBody* rigidBody, enum SHAPE shape,
+                                 btScalar halfExtent, btScalar mass,
+                                 btVector3 inertia, btVector3 pos,
+                                 btVector3 axis, btScalar angle,
+                                 btScalar restitution, btScalar friction)
+{
+    btCollisionShape* collisionShape;
+    if(shape == CUBE)
+    {
+        collisionShape = new btBoxShape(btVector3(1.0f, 1.0f, 1.0f));
+    }
+    else if(shape == SPHERE)
+    {
+        collisionShape = new btSphereShape(halfExtent);
+    }
+    else
+    {
+        fprintf(stderr, "I support only two shapes. Choose CUBE or SPHERE.");
+        exit(EXIT_FAILURE);
+    }
+
+    btQuaternion qrot(axis, angle);
+    btDefaultMotionState motionState =
+        btDefaultMotionState(btTransform(qrot, pos));
+    collisionShape->calculateLocalInertia(mass, inertia);
+    rigidBody = new btRigidBody(mass, &motionState, collisionShape, inertia);
+    rigidBody->setRestitution(restitution);
+    rigidBody->setFriction(friction);
+    dynamicsWorld->addRigidBody(rigidBody);
+}
+
 void DynamicsWorld::display()
 {
-    glPushMatrix();
-    //材質の設定
     GLfloat amb[4] = {0.2f, 0.2f, 0.2f, 1.0f}; //環境光に対する反射係数
     GLfloat dif[4] = {0.6f, 0.6f, 0.2f, 1.0f}; //拡散反射係数
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
@@ -59,22 +76,26 @@ void DynamicsWorld::display()
     btVector3 pos = groundBody->getCenterOfMassPosition();
     btScalar rot = btScalar(groundBody->getOrientation().getAngle() * RADIAN);
     btVector3 axis = groundBody->getOrientation().getAxis();
+
     glTranslatef(pos[0], pos[1], pos[2]);
     glRotated(rot, axis[0], axis[1], axis[2]);
     btVector3 halfExtent =
         static_cast<const btBoxShape*>(groundBody->getCollisionShape())
             ->getHalfExtentsWithMargin();
     glScaled(2 * halfExtent[0], 2 * halfExtent[1], 2 * halfExtent[2]);
-    glPopMatrix();
 }
-
 
 DynamicsWorld::~DynamicsWorld()
 {
-    delete groundBody->getMotionState();
-    dynamicsWorld->removeRigidBody(groundBody);
-    delete groundBody;
-
-    delete dynamicsWorld->getBroadphase();
+    for(int i = 0; i < dynamicsWorld->getNumCollisionObjects(); i++)
+    {
+        delete static_cast<btRigidBody*>(
+            dynamicsWorld->getCollisionObjectArray()[i])
+            ->getMotionState();
+        dynamicsWorld->removeRigidBody(static_cast<btRigidBody*>(
+            dynamicsWorld->getCollisionObjectArray()[i]));
+        delete static_cast<btRigidBody*>(
+            dynamicsWorld->getCollisionObjectArray()[i]);
+    }
     delete dynamicsWorld;
 }
