@@ -6,13 +6,14 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <GL/glew.h>
 
 class RenderText{
 public:
     RenderText(std::u32string text,unsigned int text_size);
     ~RenderText();
 
-    void render(float initialx, float initialy, float movingx = 0, float movingy = 0);
+    void render(float x, float y);
 
 private:
     FT_Face face;
