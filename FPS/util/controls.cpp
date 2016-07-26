@@ -1,78 +1,75 @@
+#include <iostream>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <stdio.h>
 #include "controls.h"
 
-glm::mat4 ViewMatrix;
-glm::mat4 ProjectionMatrix;
+ComputeMatrices::ComputeMatrices(GLFWwindow* window, glm::vec3 initialPos)
+    : window_(std::move(window))
+    , position_(std::move(initialPos))
+    , horizontalAngle_(0.0f)
+    , verticalAngle_(0.0f)
+    , initialFov_(45.0f)
+    , speed_(30.0f)
+    , mouseSpeed_(0.0025f)
+{}
 
-glm::mat4 getViewMatrix()
+glm::mat4 ComputeMatrices::getViewMatrix()
 {
-    return ViewMatrix;
+    return viewMatrix_;
 }
-glm::mat4 getProjectionMatrix()
+glm::mat4 ComputeMatrices::getProjectionMatrix()
 {
-    return ProjectionMatrix;
+    return projectionMatrix_;
 }
-glm::vec3 position = glm::vec3(0, 0, 5);
-float horizontalAngle = 0.0f;
-float verticalAngle = 0.0f;
-float initialFov = 45.0f;
-float speed = 30.0f;
-float mouseSpeed = 0.0025f;
-void computeMatricesFromInputs(GLFWwindow* window)
+
+void ComputeMatrices::computeMatricesFromInputs(float deltaTime)
 {
-    static double lastTime = glfwGetTime();
-    double currentTime = glfwGetTime();
-    float deltaTime = float(currentTime - lastTime);
-    double xpos, ypos;
-    int xnpos, ynpos;
-    glfwGetWindowSize(window, &xnpos, &ynpos);
-    glfwGetCursorPos(window, &xpos, &ypos);
-    glfwSetCursorPos(window, xnpos / 2, ynpos / 2);
-    horizontalAngle += mouseSpeed * float(xnpos / 2 - xpos);
-    verticalAngle += mouseSpeed * float(ynpos / 2 - ypos);
-    glm::vec3 direction(cos(verticalAngle) * sin(horizontalAngle),
-                        sin(verticalAngle),
-                        cos(verticalAngle) * cos(horizontalAngle));
-    glm::vec3 right = glm::vec3(sin(horizontalAngle - 3.14f / 2.0f), 0,
-                                cos(horizontalAngle - 3.14f / 2.0f));
+    double xMousePos, yMousePos;
+    int windowWidth, windowHeight;
+    glfwGetWindowSize(window_, &windowWidth, &windowHeight);
+    glfwGetCursorPos(window_, &xMousePos, &yMousePos);
+    glfwSetCursorPos(window_, windowWidth / 2, windowHeight / 2);
+    horizontalAngle_ += mouseSpeed_ * float(windowWidth / 2 - xMousePos);
+    verticalAngle_ += mouseSpeed_ * float(windowHeight / 2 - yMousePos);
+    glm::vec3 direction(cos(verticalAngle_) * sin(horizontalAngle_),
+                        sin(verticalAngle_),
+                        cos(verticalAngle_) * cos(horizontalAngle_));
+    glm::vec3 right = glm::vec3(sin(horizontalAngle_ - 3.14f / 2.0f), 0,
+                                cos(horizontalAngle_ - 3.14f / 2.0f));
     glm::vec3 up = glm::cross(right, direction);
-    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if(glfwGetKey(window_, GLFW_KEY_W) == GLFW_PRESS)
     {
-        if(glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS){
-            position += glm::vec3(sin(horizontalAngle), 0, cos(horizontalAngle)) *
-                        deltaTime * (speed * 2);
+        if(glfwGetKey(window_, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS){
+            position_ += glm::vec3(sin(horizontalAngle_), 0, cos(horizontalAngle_)) *
+                        deltaTime * (speed_ * 2);
         }else{
-            position += glm::vec3(sin(horizontalAngle), 0, cos(horizontalAngle)) *
-                deltaTime * speed;
+            position_ += glm::vec3(sin(horizontalAngle_), 0, cos(horizontalAngle_)) *
+                deltaTime * speed_;
         }
     }
-    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if(glfwGetKey(window_, GLFW_KEY_S) == GLFW_PRESS)
     {
-        position -= glm::vec3(sin(horizontalAngle), 0, cos(horizontalAngle)) *
-                    deltaTime * speed;
+        position_ -= glm::vec3(sin(horizontalAngle_), 0, cos(horizontalAngle_)) *
+                    deltaTime * speed_;
     }
-    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if(glfwGetKey(window_, GLFW_KEY_D) == GLFW_PRESS)
     {
-        position += right * deltaTime * speed;
+        position_ += right * deltaTime * speed_;
     }
-    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if(glfwGetKey(window_, GLFW_KEY_A) == GLFW_PRESS)
     {
-        position -= right * deltaTime * speed;
+        position_ -= right * deltaTime * speed_;
     }
-    if(glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    if(glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        position += glm::vec3(0, 1, 0) * deltaTime * speed;
+        position_ += glm::vec3(0, 1, 0) * deltaTime * speed_;
     }
-    if(glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    if(glfwGetKey(window_, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
     {
-        position -= glm::vec3(0, 1, 0) * deltaTime * speed;
+        position_ -= glm::vec3(0, 1, 0) * deltaTime * speed_;
     }
 
-    float FoV = initialFov;
-    ProjectionMatrix = glm::perspective(FoV, 4.0f / 3.0f, 0.1f, 1000.0f);
-    ViewMatrix = glm::lookAt(position, position + direction, up);
-    lastTime = currentTime;
+    float FoV = initialFov_;
+    projectionMatrix_ = glm::perspective(FoV, 4.0f / 3.0f, 0.1f, 1000.0f);
+    viewMatrix_ = glm::lookAt(position_, position_ + direction, up);
 }
