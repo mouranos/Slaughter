@@ -1,80 +1,80 @@
 #include "bulletfunc.h"
 #include "btBulletDynamicsCommon.h"
 #include <GL/glew.h>
+#include <stdexcept>
 
 DynamicsWorld::DynamicsWorld()
-    : config(), dispatcher(&config), broadphase(), solver()
+    : config(), dispatcher(&config), broadphase(), solver(),
+      dynamicsWorld(&dispatcher, &broadphase, &solver, &config)
 {
-    dynamicsWorld =
-        new btDiscreteDynamicsWorld(&dispatcher, &broadphase, &solver, &config);
-    dynamicsWorld->setGravity(btVector3(0, -9.8, 0));
-    initObject();
-}
+    dynamicsWorld.setGravity(btVector3(0, -10, 0));
 
-void DynamicsWorld::initObject()
-{
-    btCollisionShape* collision_shape = new btBoxShape(btVector3(3, 0.1, 3));
+    std::unique_ptr<btCollisionShape> collisionShape(
+        std::make_unique<btBoxShape>(btVector3(100, -0.1, 100)));
 
-    btVector3 pos = btVector3(0, -2, 0);
-    btVector3 axis = btVector3(0, 0, 1);
-    btScalar angle =
-        10.0 / RADIAN; // 回転角はラジアン単位で指定（OpenGLのglRotateはdegree）
-    btQuaternion qrot(
-        axis,
-        angle); // 回転軸と回転角からクォータニオンを計算（OpenGLのglRotateとは引数の順番が逆）
-    btDefaultMotionState* motion_state =
-        new btDefaultMotionState(btTransform(qrot, pos));
+    btVector3 pos(0, -0.05, 0);
+    btVector3 axis(0, 1, 0);
+    btScalar angle(btRadians(10.0f));
+    btQuaternion qrot(axis, angle);
+//    btDefaultMotionState motionState(btTransform(qrot, pos));
+    std::unique_ptr<btMotionState> motionState(std::make_unique<btDefaultMotionState>(btTransform(qrot,pos)));
 
-    // 質量を0にすると衝突しても動かない静的剛体になる（慣性モーメントも必ず0になるので必要無い）
-    groundBody = new btRigidBody(0.0, motion_state, collision_shape);
-    // 反発係数の設定（衝突する物体の反発係数と衝突される物体の反発係数を掛けた値が最終的な反発係数になる）
+    rigidBodies.push_back(
+        {{0.0, motionState.get(), collisionShape.get()}, std::move(collisionShape), std::move(motionState)});
+
+    groundBody = &rigidBodies.back().body;
+
     btScalar restitution = btScalar(0.8);
     groundBody->setRestitution(restitution);
 
-    // ワールドに剛体オブジェクトを追加
-    dynamicsWorld->addRigidBody(groundBody);
+    dynamicsWorld.addRigidBody(groundBody);
 }
 
-void DynamicsWorld::addRigidBody(btRigidBody* rigidBody, enum SHAPE shape,
-                                 btScalar halfExtent, btScalar mass,
-                                 btVector3 inertia, btVector3 pos,
-                                 btVector3 axis, btScalar angle,
-                                 btScalar restitution, btScalar friction)
+std::vector<DynamicsWorld::ObjectData>::iterator
+DynamicsWorld::addRigidBody(SHAPE shape, btVector3 halfExtents, btScalar mass,
+                            btVector3 inertia, btVector3 pos, btVector3 axis,
+                            btScalar angle, btScalar restitution,
+                            btScalar friction)
 {
-    btCollisionShape* collisionShape;
+    std::unique_ptr<btCollisionShape> collisionShape;
     if(shape == CUBE)
     {
-        collisionShape = new btBoxShape(btVector3(1.0f, 1.0f, 1.0f));
+        collisionShape = std::make_unique<btBoxShape>(halfExtents);
     }
     else if(shape == SPHERE)
     {
-        collisionShape = new btSphereShape(halfExtent);
+        collisionShape = std::make_unique<btSphereShape>(halfExtents.x());
     }
     else
     {
-        fprintf(stderr, "I support only two shapes. Choose CUBE or SPHERE.");
-        exit(EXIT_FAILURE);
+        throw std::runtime_error(
+            "I only support two shapes. Choose CUBE or SPHERE.");
     }
 
     btQuaternion qrot(axis, angle);
-    btDefaultMotionState motionState =
-        btDefaultMotionState(btTransform(qrot, pos));
+//    btDefaultMotionState motionState(btTransform(qrot, pos));
+    std::unique_ptr<btMotionState> motionState(std::make_unique<btDefaultMotionState>(btTransform(qrot, pos)));
     collisionShape->calculateLocalInertia(mass, inertia);
-    rigidBody = new btRigidBody(mass, &motionState, collisionShape, inertia);
-    rigidBody->setRestitution(restitution);
-    rigidBody->setFriction(friction);
-    dynamicsWorld->addRigidBody(rigidBody);
+    rigidBodies.push_back({{mass, motionState.get(), collisionShape.get(), inertia},
+                           std::move(collisionShape), std::move(motionState)});
+
+    btRigidBody& rigidBody = rigidBodies.back().body;
+
+    rigidBody.setRestitution(restitution);
+    rigidBody.setFriction(friction);
+    dynamicsWorld.addRigidBody(&rigidBody);
+    return std::prev(rigidBodies.end());
 }
 
 void DynamicsWorld::display()
 {
-    GLfloat amb[4] = {0.2f, 0.2f, 0.2f, 1.0f}; //環境光に対する反射係数
-    GLfloat dif[4] = {0.6f, 0.6f, 0.2f, 1.0f}; //拡散反射係数
+    GLfloat amb[4] = {0.2f, 0.2f, 0.2f, 1.0f};
+    GLfloat dif[4] = {0.6f, 0.6f, 0.2f, 1.0f};
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
     glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dif);
 
     btVector3 pos = groundBody->getCenterOfMassPosition();
-    btScalar rot = btScalar(groundBody->getOrientation().getAngle() * RADIAN);
+    btScalar rot(btRadians(groundBody->getOrientation().getAngle()));
     btVector3 axis = groundBody->getOrientation().getAxis();
 
     glTranslatef(pos[0], pos[1], pos[2]);
@@ -85,17 +85,17 @@ void DynamicsWorld::display()
     glScaled(2 * halfExtent[0], 2 * halfExtent[1], 2 * halfExtent[2]);
 }
 
+void DynamicsWorld::removeRigidBody(
+    std::vector<DynamicsWorld::ObjectData>::iterator it)
+{
+    dynamicsWorld.removeRigidBody(&it->body);
+    rigidBodies.erase(it);
+}
+
 DynamicsWorld::~DynamicsWorld()
 {
-    for(int i = 0; i < dynamicsWorld->getNumCollisionObjects(); i++)
+    for(auto& i : rigidBodies)
     {
-        delete static_cast<btRigidBody*>(
-            dynamicsWorld->getCollisionObjectArray()[i])
-            ->getMotionState();
-        dynamicsWorld->removeRigidBody(static_cast<btRigidBody*>(
-            dynamicsWorld->getCollisionObjectArray()[i]));
-        delete static_cast<btRigidBody*>(
-            dynamicsWorld->getCollisionObjectArray()[i]);
+        dynamicsWorld.removeRigidBody(&i.body);
     }
-    delete dynamicsWorld;
 }
