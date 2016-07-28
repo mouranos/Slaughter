@@ -1,5 +1,5 @@
 #ifndef MAIN_H
 #define MAIN_H
-bool start_fps();
+bool startGame();
 double getDeltaTime(double* lastTime);
 #endif
