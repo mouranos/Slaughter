@@ -9,7 +9,6 @@ varying vec3 LightDirection_cameraspace;
 
 // Values that stay constant for the whole mesh.
 uniform sampler2D myTextureSampler;
-uniform mat4 MV;
 uniform vec3 LightPosition_worldspace;
 
 void main()
@@ -39,6 +38,7 @@ void main()
     float cosTheta = clamp(dot(n, l), 0, 1);
 
     // Eye vector (towards the camera)
+    // normalize() -> ただの正規化。法線関係ない
     vec3 E = normalize(EyeDirection_cameraspace);
     // Direction in which the triangle reflects the light
     vec3 R = reflect(-l, n);
