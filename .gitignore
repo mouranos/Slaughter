@@ -1,4 +1,4 @@
-build/
+build*/
 .directory
 CMakeLists.txt.user
 characters/
