@@ -16,4 +16,11 @@ private:
     GLFWwindow* window_;
 };
 
+class GLFWOneTimeInit
+{
+public:
+    GLFWOneTimeInit();
+    ~GLFWOneTimeInit();
+};
+
 #endif
