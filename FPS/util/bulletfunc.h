@@ -1,34 +1,44 @@
 #ifndef BULLETFUNC_H
 #define BULLETFUNC_H
 
-#include "btBulletDynamicsCommon.h"
+#include <btBulletDynamicsCommon.h>
+#include <memory>
+#include <vector>
 
-constexpr double RADIAN = 180.0/3.1415;
-
-enum SHAPE{
+enum SHAPE
+{
     CUBE,
     SPHERE
 };
 
-class DynamicsWorld{
+class DynamicsWorld
+{
 public:
+    struct ObjectData
+    {
+        btRigidBody body;
+        std::unique_ptr<btCollisionShape> colShape;
+        std::unique_ptr<btMotionState> motionState;
+    };
+
     DynamicsWorld();
     ~DynamicsWorld();
-    void initObject();
-    void simulate();
     void display();
-    void addRigidBody(btRigidBody* rigidBody, enum SHAPE shape, btScalar halfExtent, btScalar mass, btVector3 inertia, btVector3 pos, btVector3 axis, btScalar angle, btScalar restitution, btScalar friction);
-    btDynamicsWorld* getDynamicsWorld(){
-        return dynamicsWorld;
-    }
+    std::vector<ObjectData>::iterator
+    addRigidBody(SHAPE shape, btVector3 halfExtents, btScalar mass,
+                 btVector3 inertia, btVector3 pos, btVector3 axis,
+                 btScalar angle, btScalar restitution, btScalar friction);
+    void removeRigidBody(std::vector<ObjectData>::iterator it);
+    btDynamicsWorld& getDynamicsWorld() { return dynamicsWorld; }
 
 private:
-    btDynamicsWorld* dynamicsWorld;
-    btRigidBody* groundBody;
     btDefaultCollisionConfiguration config;
     btCollisionDispatcher dispatcher;
     btDbvtBroadphase broadphase;
     btSequentialImpulseConstraintSolver solver;
+    btDiscreteDynamicsWorld dynamicsWorld;
+    btRigidBody* groundBody;
+    std::vector<ObjectData> rigidBodies;
 };
 
 #endif
