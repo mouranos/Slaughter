@@ -1,4 +1,5 @@
 #include <iostream>
+#include <math.h>
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include "controls.h"
@@ -31,6 +32,11 @@ void ComputeMatrices::computeMatricesFromInputs(float deltaTime)
     glfwSetCursorPos(window_, windowWidth / 2, windowHeight / 2);
     horizontalAngle_ += mouseSpeed_ * float(windowWidth / 2 - xMousePos);
     verticalAngle_ += mouseSpeed_ * float(windowHeight / 2 - yMousePos);
+    if(verticalAngle_ > M_PI/2){
+        verticalAngle_ = M_PI/2;
+    }else if(verticalAngle_ < -M_PI/2){
+        verticalAngle_ = -M_PI/2;
+    }
     glm::vec3 direction(cos(verticalAngle_) * sin(horizontalAngle_),
                         sin(verticalAngle_),
                         cos(verticalAngle_) * cos(horizontalAngle_));
