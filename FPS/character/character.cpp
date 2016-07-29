@@ -25,6 +25,8 @@ int Character::getSpeed()
 Character::CharacterBody::CharacterBody(btVector3 halfExtents, btScalar mass,
                                         btVector3 pos)
     : halfExtents_(std::move(halfExtents)), mass_(std::move(mass)),
-      pos_(std::move(pos)),inertia_(btVector3(0,0,0)),axis_(btVector3(0,1,0)),angle_(btScalar(0.f)),restitution_(0.8f),friction_(0.7f)
+      pos_(std::move(pos)), inertia_(btVector3(0, 0, 0)),
+      axis_(btVector3(0, 1, 0)), angle_(btScalar(0.f)), restitution_(0.8f),
+      friction_(0.7f)
 {
 }
