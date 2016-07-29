@@ -5,13 +5,10 @@
 
 class Character
 {
-    class CharacterBody
+    struct CharacterBody
     {
-    public:
-        CharacterBody(btVector3 halfExtents, btScalar mass, btVector3 pos);
-
-    protected:
-        btRigidBody* characterBody_;
+        CharacterBody(btVector3 halfExtents,btScalar mass,
+                      btVector3 pos);
         btVector3 halfExtents_;
         btScalar mass_;
         btVector3 inertia_;
@@ -20,13 +17,14 @@ class Character
         btScalar angle_;
         btScalar restitution_;
         btScalar friction_;
-    };
+    } ;
 
 public:
     Character(int hp, int speed, int power, btVector3 halfExtents, btScalar mass, btVector3 pos);
     int getHp();
     int getPower();
     int getSpeed();
+    btRigidBody getCharacterBody();
 
 protected:
     int hp_;
