@@ -5,31 +5,37 @@
 
 class Character
 {
+public:
     struct CharacterBody
     {
+    public:
         CharacterBody(btVector3 halfExtents, btScalar mass, btVector3 pos);
+        btVector3 getHalfExtents();
+        btScalar getMass();
+        btVector3 getPosition();
+    private:
         btVector3 halfExtents_;
         btScalar mass_;
-        btVector3 inertia_;
         btVector3 pos_;
-        btVector3 axis_;
-        btScalar angle_;
-        btScalar restitution_;
-        btScalar friction_;
     };
-
-public:
     Character(int hp, int speed, int power, btVector3 halfExtents,
               btScalar mass, btVector3 pos);
     int getHp();
     int getPower();
-    int getSpeed();
+    int getMaxSpeed();
+    void halveMaxSpeed();
+    void doubleMaxSpeed();
+    btVector3 getDirection();
+    CharacterBody getCharBody();
+
 
 protected:
     int hp_;
-    int speed_;
+    int maxSpeed_;
     int power_;
-    CharacterBody entity_;
+    CharacterBody charBody_;
+    btScalar turnSpeed_;
+    btVector3 direction_;
 };
 
 #endif

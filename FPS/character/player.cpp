@@ -3,13 +3,5 @@
 #include "player.h"
 
 Player::Player()
-{
-    hp = 20;
-    power = 20;
-    speed = 20;
-}
-
-void Player::initObject()
-{
-
-}
+    : Character(100,100,20,btVector3(10,20,10),60,btVector3(0,20,0))
+{}
