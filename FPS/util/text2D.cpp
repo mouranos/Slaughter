@@ -64,13 +64,13 @@ void printText2D(const char * text, int x, int y, int size){
 		vertices.push_back(vertex_down_left);
 
 		char character = text[i];
-		float uv_x = (character%16)/16.0f;
-		float uv_y = (character/16)/16.0f;
+		float uv_x = (character%16)/16.f;
+		float uv_y = (character/16)/16.f;
 
 		glm::vec2 uv_up_left    = glm::vec2( uv_x           , uv_y );
-		glm::vec2 uv_up_right   = glm::vec2( uv_x+1.0f/16.0f, uv_y );
-		glm::vec2 uv_down_right = glm::vec2( uv_x+1.0f/16.0f, (uv_y + 1.0f/16.0f) );
-		glm::vec2 uv_down_left  = glm::vec2( uv_x           , (uv_y + 1.0f/16.0f) );
+		glm::vec2 uv_up_right   = glm::vec2( uv_x+1.f/16.f, uv_y );
+		glm::vec2 uv_down_right = glm::vec2( uv_x+1.f/16.f, (uv_y + 1.f/16.f) );
+		glm::vec2 uv_down_left  = glm::vec2( uv_x           , (uv_y + 1.f/16.f) );
 		UVs.push_back(uv_up_left   );
 		UVs.push_back(uv_down_left );
 		UVs.push_back(uv_up_right  );
