@@ -19,8 +19,7 @@ DynamicsWorld::DynamicsWorld()
 
     groundBody = &rigidBodies.back().body;
 
-    btScalar restitution = btScalar(0.f);
-    groundBody->setRestitution(restitution);
+    groundBody->setRestitution(0.f);
     groundBody->setFriction(0.8f);
 
     dynamicsWorld.addRigidBody(groundBody);
