@@ -1,11 +1,11 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include "textrenderer.h"
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <stdexcept>
-#include <util/shader.h>
+#include "shader.h"
+#include "textrenderer.h"
 
 RenderText::RenderText(std::u32string text, unsigned int text_size)
     : text_(std::move(text))
@@ -30,7 +30,7 @@ RenderText::RenderText(std::u32string text, unsigned int text_size)
             "An error occurred during FreeType library initialization.");
     }
 
-    if(FT_New_Face(library, "/usr/share/fonts/noto/NotoSansCJK-Regular.ttc", 0,
+    if(error = FT_New_Face(library, "/usr/share/fonts/noto/NotoSansCJK-Regular.ttc", 0,
                    &face) != 0)
     {
         fprintf(stderr,
@@ -91,8 +91,8 @@ RenderText::RenderText(std::u32string text, unsigned int text_size)
         y -= static_cast<float>(slot->advance.y) / 64;
     }
 
-    constexpr GLfloat uv_buffer_data[] = {0.0f, 1.0f, 1.0f, 1.0f,
-                                          1.0f, 0.0f, 0.0f, 0.0f};
+    constexpr GLfloat uv_buffer_data[] = {0.f, 1.f, 1.f, 1.f,
+                                          1.f, 0.f, 0.f, 0.f};
 
     glGenBuffers(1, &uvbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
@@ -125,7 +125,6 @@ void RenderText::render(float x, float y)
                      GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(vertexPositionID);
-        // glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer[i]);
         glVertexAttribPointer(vertexPositionID, 2, GL_FLOAT, GL_FALSE, 0,
                               static_cast<GLvoid*>(0));
 
