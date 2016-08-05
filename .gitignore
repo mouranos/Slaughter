@@ -1,5 +1,5 @@
 build*/
 .directory
 CMakeLists.txt.user
-FPS/log/
+*/log/
 
