@@ -7,8 +7,8 @@
 #include "shader.h"
 #include "textrenderer.h"
 
-RenderText::RenderText(std::u32string text, unsigned int text_size)
-    : text_(std::move(text))
+RenderText::RenderText(std::u32string text, unsigned int textSize)
+    : text_(std::move(text)), textSize_(std::move(textSize))
 {
     int error;
     float x = 0, y = 0;
@@ -38,7 +38,78 @@ RenderText::RenderText(std::u32string text, unsigned int text_size)
                 error);
     }
 
-    error = FT_Set_Char_Size(face, 0, text_size << 6, 96, 0);
+    error = FT_Set_Char_Size(face, 0, textSize_ << 6, 96, 0);
+    if(error)
+    {
+        fprintf(stderr, "An error occued during setting character size.\n");
+    }
+
+    glGenTextures(char_textures.size(), char_textures.data());
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    for(int i = 0; i<text_.length(); i++)
+    {
+        FT_UInt glyph_index;
+        glyph_index = FT_Get_Char_Index(face, text_[i]);
+        error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
+        if(error)
+        {
+            std::cerr << "Load glyph error: " << error << std::endl;
+            continue;
+        }
+        error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+        if(error)
+        {
+            std::cerr << "Render glyph error: " << error << std::endl;
+            continue;
+        }
+
+        FT_GlyphSlot slot = face->glyph;
+        const FT_Bitmap& bitmap = slot->bitmap;
+
+        glBindTexture(GL_TEXTURE_2D, char_textures[i]);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, bitmap.width, bitmap.rows, 0,
+                     GL_RED, GL_UNSIGNED_BYTE, bitmap.buffer);
+
+        vertex_buffer_data[i][0][0] = x + slot->bitmap_left;
+        vertex_buffer_data[i][0][1] = y + slot->bitmap_top - bitmap.rows;
+        vertex_buffer_data[i][1][0] = x + slot->bitmap_left + bitmap.width;
+        vertex_buffer_data[i][1][1] = y + slot->bitmap_top - bitmap.rows;
+        vertex_buffer_data[i][2][0] = x + slot->bitmap_left + bitmap.width;
+        vertex_buffer_data[i][2][1] = y + slot->bitmap_top;
+        vertex_buffer_data[i][3][0] = x + slot->bitmap_left;
+        vertex_buffer_data[i][3][1] = y + slot->bitmap_top;
+        x += static_cast<float>(slot->advance.x) / 64;
+        y -= static_cast<float>(slot->advance.y) / 64;
+    }
+
+    constexpr GLfloat uv_buffer_data[] = {0.f, 1.f, 1.f, 1.f,
+                                          1.f, 0.f, 0.f, 0.f};
+
+    glGenBuffers(1, &uvbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(uv_buffer_data), uv_buffer_data,
+                 GL_STATIC_DRAW);
+}
+
+void RenderText::setText(std::u32string text)
+{
+    text_ = std::move(text);
+    int error;
+    float x = 0, y = 0;
+    vertex_buffer_data.resize(text_.length());
+    vertexbuffer.resize(text_.length());
+    char_textures.resize(text_.length());
+
+    error = FT_Set_Char_Size(face, 0, textSize_ << 6, 96, 0);
     if(error)
     {
         fprintf(stderr, "An error occued during setting character size.\n");
