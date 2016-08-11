@@ -16,8 +16,8 @@ RenderText::RenderText(std::u32string text, unsigned int textSize)
     vertexbuffer.resize(text_.length());
     char_textures.resize(text_.length());
 
-    programID = LoadShaders("shader/textRenderVertexShader.glsl",
-                            "shader/textRenderFragmentShader.glsl");
+    programID = LoadShaders("shader/2DVertexShader.glsl",
+                            "shader/2DFragmentShader.glsl");
 
     vertexPositionID =
         glGetAttribLocation(programID, "vertexPosition_screenspace");
