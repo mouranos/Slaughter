@@ -4,7 +4,7 @@
 #include "util/windowcreater.h"
 #include <GLFW/glfw3.h>
 #include <btBulletDynamicsCommon.h>
-#include "util/bulletfunc.h"
+#include "util/bulletgenobj.h"
 
 int main()
 {
