@@ -7,7 +7,7 @@ DynamicsWorld::DynamicsWorld()
     : config(), dispatcher(&config), broadphase(), solver(),
       dynamicsWorld(&dispatcher, &broadphase, &solver, &config)
 {
-    dynamicsWorld.setGravity(btVector3(0, -300, 0));
+    dynamicsWorld.setGravity(btVector3(0, -9.8, 0));
 
     std::unique_ptr<btCollisionShape> collisionShape(
         std::make_unique<btStaticPlaneShape>(btVector3(0.f,1.f,0.f),0.f));
