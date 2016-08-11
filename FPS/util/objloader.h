@@ -8,12 +8,14 @@
 class loadOBJ{
 public:
     loadOBJ(const char* path);
+    GLenum getPolygonType(){return polygonType;}
     std::vector<unsigned short> getIndices(){return indices_;}
     std::vector<glm::vec3> getIndexedVertices(){return indexedVertices_;}
     std::vector<glm::vec2> getIndexedUvs(){return indexedUvs_;}
     std::vector<glm::vec3> getIndexedNormals(){return indexedNormals_;}
-
 private:
+    GLenum polygonType;
+    bool loadMTL(const char* path);
     std::vector<glm::vec3> vertices_;
     std::vector<glm::vec2> uvs_;
     std::vector<glm::vec3> normals_;
