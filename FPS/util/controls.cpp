@@ -97,7 +97,6 @@ void ComputeMatrices::computeMatricesFromInputs(float deltaTime)
         if(itr_->body.getLinearVelocity().length() != 0){
             linearVelocity = const_cast<btVector3&>(itr_->body.getLinearVelocity()).normalize();
             linearVelocity.setY(0);
-            printf("x:%.3f y:%.3f z:%.3f\n",linearVelocity.x(), linearVelocity.y(), linearVelocity.z());
         }
     }
     else
