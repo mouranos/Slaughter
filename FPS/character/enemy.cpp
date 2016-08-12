@@ -3,7 +3,7 @@
 #include "enemy.h"
 
 Enemy::Enemy()
-    :Character(100,10000,20,btVector3(10,20,10),60,btVector3(0,20,0))
+    :Character(100,10000,20,btVector3(10,20,10),60)
                //TODO:coordinate balanced value
 {
 }

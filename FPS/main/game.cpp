@@ -100,7 +100,7 @@ bool startGame()
     auto playerBodyItr = dynamicsWorld.addRigidBody(
         CAPSULE, player.getCharBody().getHalfExtents(),
         player.getCharBody().getMass(), btVector3(0, 0, 0),
-        player.getCharBody().getPosition(), btVector3(0, 1, 0), 0, 0.9f, 0.7f);
+        btVector3(0,20,0), btVector3(0, 1, 0), 0, 0.9f, 0.7f);
     ComputeMatrices worldMatrices(window, player, playerBodyItr);
 
     unsigned int numEnemies = 4;
@@ -114,8 +114,8 @@ bool startGame()
     {
         enemyBodyItrs[i] = dynamicsWorld.addRigidBody(
             CAPSULE, enemies[i].getCharBody().getHalfExtents(),
-            enemies[i].getCharBody().getMass(), enemySpawnPoint[i],
-            enemies[i].getCharBody().getPosition(), btVector3(0, 1, 0), 0, 0.8f,
+            enemies[i].getCharBody().getMass(), btVector3(0,0,0),
+            enemySpawnPoint[i], btVector3(0, 1, 0), 0, 0.8f,
             0.7f);
     }
 
@@ -249,6 +249,26 @@ bool startGame()
     unsigned int textSize = 128;
     RenderText timeText(timeLimit, textSize);
 
+    float halfAimSize = 100;
+    const GLfloat aimVertexBufferData[] = {-halfAimSize+WIDTH,-halfAimSize+HEIGHT,halfAimSize+WIDTH,-halfAimSize+HEIGHT,halfAimSize+WIDTH,halfAimSize+HEIGHT,-halfAimSize+WIDTH,halfAimSize+HEIGHT};
+    const GLint aimUvBufferData[] = {0,0,1,0,1,1,0,1};
+
+    GLuint aimProgramID = LoadShaders("shader/2DVertexShader.glsl","shader/2DFragmentShader.glsl");
+    GLuint aimTexture = loadBMP_custom("material/others/aim.bmp");
+    GLuint aimVertexPositionID = glGetAttribLocation(aimProgramID, "vertexPosition_screenspace");
+    GLuint aimVertexUvID = glGetAttribLocation(aimProgramID, "vertexUV");
+    GLuint aimTextureID = glGetUniformLocation(aimProgramID, "myTextureSampler");
+
+    GLuint aimVertexBuffer;
+    glGenBuffers(1, &aimVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, aimVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(aimVertexBufferData),aimVertexBufferData, GL_STATIC_DRAW);
+
+    GLuint aimUvBuffer;
+    glGenBuffers(1, &aimUvBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, aimUvBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(aimUvBufferData), aimUvBufferData, GL_STATIC_DRAW);
+
     double lastTime = glfwGetTime();
     do
     {
@@ -256,8 +276,9 @@ bool startGame()
         dynamicsWorld.getDynamicsWorld().stepSimulation(deltaTime);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+        glEnable(GL_BLEND);
+//        glEnable(GL_CULL_FACE);
+//        glCullFace(GL_BACK);
         glDepthFunc(GL_LESS);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -303,34 +324,25 @@ bool startGame()
 
         // Draw enemies
 
-        glm::vec3 enemyPoses[numEnemies];
-        float enemyAngles[numEnemies];
-        glm::mat4 enemyTranslationMatrices[numEnemies];
-        glm::mat4 enemyRotationMatrices[numEnemies];
-        glm::mat4 enemyModelMatrices[numEnemies];
         for(int i = 0; i < numEnemies; i++)
         {
-            enemyPoses[i] =
+            glm::mat4 enemyModelMatrix;
+            glm::vec3 enemyPos =
                 glm::vec3(enemyBodyItrs[i]->body.getCenterOfMassPosition().x(),
                           enemyBodyItrs[i]->body.getCenterOfMassPosition().y(),
                           enemyBodyItrs[i]->body.getCenterOfMassPosition().z());
-            enemyAngles[i] = enemyBodyItrs[i]->body.getOrientation().getAngle();
-            enemyTranslationMatrices[i] = glm::translate(enemyPoses[i]);
-            enemyRotationMatrices[i] = glm::rotate(
-                atan2(enemyPoses[i].x, enemyPoses[i].y), glm::vec3(0, 1, 0));
-            enemyModelMatrices[i] = enemyTranslationMatrices[i] *
-                                    enemyRotationMatrices[i] *
+            enemyModelMatrix = glm::translate(enemyPos) *
+            glm::rotate(
+                            atan2(enemyPos.x, enemyPos.y), glm::vec3(0, 1, 0)) *
                                     glm::scale(glm::vec3(0.3, 0.3, 0.3));
-        }
 
-        glUniformMatrix4fv(enemyModelMatrixID, numEnemies, GL_FALSE,
-                           &enemyModelMatrices[0][0][0]);
+        glUniformMatrix4fv(enemyModelMatrixID, 1, GL_FALSE,
+                           &enemyModelMatrix[0][0]);
 
         glBindTexture(GL_TEXTURE_2D, enemyTexture);
 
         glUniform1i(enemyTextureID, 0);
 
-        for(int i = 0; i < numEnemies; i++){
         glEnableVertexAttribArray(enemyVertexPositionID);
         glBindBuffer(GL_ARRAY_BUFFER, enemyVertexBuffer[i]);
         glVertexAttribPointer(enemyVertexPositionID, 3, GL_FLOAT, GL_FALSE, 0,
@@ -415,14 +427,38 @@ bool startGame()
 
         glDisable(GL_DEPTH_TEST);
 
+        // Draw 2D here
         // Draw time counter
         timeLimit = converter.from_bytes(std::to_string(TIME_LIMIT-static_cast<int>(glfwGetTime()-timeBeforeLoop)).data());
         timeText.setText(timeLimit);
         timeText.render(1440-textSize,832*2-textSize*2);
 
+        // Draw aim
+//        glDisable(GL_BLEND);
+//        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE,GL_ONE);
+        glEnableVertexAttribArray(aimVertexPositionID);
+        glBindBuffer(GL_ARRAY_BUFFER, aimVertexBuffer);
+        glVertexAttribPointer(aimVertexPositionID, 2, GL_FLOAT,
+                              GL_FALSE, 0, static_cast<GLvoid*>(0));
+
+        glBindTexture(GL_TEXTURE_2D, aimTexture);
+
+        glUniform1i(aimTextureID, 0);
+
+        glEnableVertexAttribArray(aimVertexUvID);
+        glBindBuffer(GL_ARRAY_BUFFER, aimUvBuffer);
+        glVertexAttribPointer(aimVertexUvID, 2, GL_INT, GL_FALSE, 0,
+                              static_cast<GLvoid*>(0));
+
+        glDrawArrays(GL_QUADS, 0, 4);
+
+        glDisableVertexAttribArray(aimVertexPositionID);
+        glDisableVertexAttribArray(aimVertexUvID);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+        glDisable(GL_BLEND);
 
     } while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
             glfwWindowShouldClose(window) == 0);
@@ -439,11 +475,15 @@ bool startGame()
     glDeleteBuffers(numEnemies, enemyVertexBuffer);
     glDeleteBuffers(1, &enemyUvBuffer);
     glDeleteBuffers(1, &enemyElementBuffer);
+    glDeleteBuffers(1, &aimVertexBuffer);
+    glDeleteBuffers(1, &aimUvBuffer);
     glDeleteProgram(worldProgramID);
+    glDeleteProgram(aimProgramID);
     glDeleteTextures(1, &m16Texture);
     glDeleteTextures(1, &groundTexture);
     glDeleteTextures(1, &ballTexture);
     glDeleteTextures(1, &enemyTexture);
+    glDeleteTextures(1, &aimTexture);
 
     return true;
 }
@@ -462,7 +502,7 @@ glm::mat4 gunViewMatrixHandler(GLFWwindow* window)
     glm::mat4 gunViewMatrix;
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
     {
-        gunViewMatrix = glm::lookAt(glm::vec3(-5, 2, 0), glm::vec3(10, 0, 0), glm::vec3(0, 1, 0));
+        gunViewMatrix = glm::lookAt(glm::vec3(3.2f, 1.5f, 0), glm::vec3(-10, 1.5f, 0), glm::vec3(0, 1, 0));
     }
     else
     {

@@ -10,9 +10,9 @@ ComputeMatrices::ComputeMatrices(
     GLFWwindow* window, Player player,
     std::list<DynamicsWorld::ObjectData>::iterator itr)
     : window_(window), player_(player), itr_(itr),
-      position_(player.getCharBody().getPosition().x(),
-                player.getCharBody().getPosition().y(),
-                player.getCharBody().getPosition().z()),
+      position_(itr_->body.getCenterOfMassPosition().x(),
+                itr_->body.getCenterOfMassPosition().y()*2,
+                itr_->body.getCenterOfMassPosition().z()),
       horizontalAngle_(0.f), verticalAngle_(0.f), initialFov_(45.f),
       speed_(0.f), mouseSpeed_(0.0025f)
 {
@@ -133,15 +133,16 @@ void ComputeMatrices::computeMatricesFromInputs(float deltaTime)
         {
             linearVelocity += btVector3(-right.x, 0, -right.z);
         }
-        if(glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS)
+    }
+    if(glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        if(itr_->body.getCenterOfMassPosition().y() <=
+           player_.getCharBody().getHalfExtents().y())
         {
-            if(itr_->body.getCenterOfMassPosition().y() <=
-               player_.getCharBody().getHalfExtents().y())
-            {
-                btScalar magnitude =
-                    (btScalar(1.f) / itr_->body.getInvMass()) * btScalar(100.f);
-                itr_->body.applyCentralImpulse(btVector3(0, 1, 0) * magnitude);
-            }
+            btScalar magnitude =
+                (btScalar(1.f) / itr_->body.getInvMass()) * btScalar(100.f);
+            itr_->body.applyCentralImpulse(btVector3(0, 1000000, 0) * magnitude);
+
         }
     }
     itr_->body.setLinearVelocity(linearVelocity * speed_ * deltaTime);

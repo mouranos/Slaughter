@@ -3,9 +3,9 @@
 // class Chatacter
 
 Character::Character(int hp, int maxSpeed, int power, btVector3 halfExtents,
-                     btScalar mass, btVector3 pos)
+                     btScalar mass)
     : hp_(std::move(hp)), maxSpeed_(std::move(maxSpeed)), power_(std::move(power)),
-      charBody_(halfExtents, mass, pos)
+      charBody_(halfExtents, mass)
 {
 }
 
@@ -41,10 +41,8 @@ btVector3 Character::getDirection()
 
 // struct CharacterBody
 
-Character::CharacterBody::CharacterBody(btVector3 halfExtents, btScalar mass,
-                                        btVector3 pos)
-    : halfExtents_(std::move(halfExtents)), mass_(std::move(mass)),
-      pos_(std::move(pos))
+Character::CharacterBody::CharacterBody(btVector3 halfExtents, btScalar mass)
+    : halfExtents_(std::move(halfExtents)), mass_(std::move(mass))
 {}
 
 Character::CharacterBody Character::getCharBody()
@@ -60,9 +58,4 @@ btVector3 Character::CharacterBody::getHalfExtents()
 btScalar Character::CharacterBody::getMass()
 {
     return mass_;
-}
-
-btVector3 Character::CharacterBody::getPosition()
-{
-    return pos_;
 }

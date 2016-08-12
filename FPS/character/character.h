@@ -9,17 +9,16 @@ public:
     struct CharacterBody
     {
     public:
-        CharacterBody(btVector3 halfExtents, btScalar mass, btVector3 pos);
+        CharacterBody(btVector3 halfExtents, btScalar mass);
         btVector3 getHalfExtents();
         btScalar getMass();
         btVector3 getPosition();
     private:
         btVector3 halfExtents_;
         btScalar mass_;
-        btVector3 pos_;
     };
     Character(int hp, int speed, int power, btVector3 halfExtents,
-              btScalar mass, btVector3 pos);
+              btScalar mass);
     int getHp();
     int getPower();
     int getMaxSpeed();
