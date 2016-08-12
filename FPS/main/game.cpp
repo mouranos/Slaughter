@@ -57,21 +57,28 @@ bool startGame()
 
     // Ground's data
     float halfGroundSize = 600.f;
-    const unsigned int splitNumber = 6;    
-    GLfloat groundVertexBufferData[splitNumber*splitNumber][3*4];
-    for(int i = 0; i < splitNumber*splitNumber; i++){
-            groundVertexBufferData[i][0] = -halfGroundSize + halfGroundSize*2/splitNumber*(i%6);
-            groundVertexBufferData[i][1] = 0;
-            groundVertexBufferData[i][2] = -halfGroundSize + halfGroundSize*2/splitNumber*(i/6);
-            groundVertexBufferData[i][3] = groundVertexBufferData[i][0];
-            groundVertexBufferData[i][4] = 0;
-            groundVertexBufferData[i][5] = groundVertexBufferData[i][2] + halfGroundSize*2/splitNumber;
-            groundVertexBufferData[i][6] = groundVertexBufferData[i][0] + halfGroundSize*2/splitNumber;
-            groundVertexBufferData[i][7] = 0;
-            groundVertexBufferData[i][8] = groundVertexBufferData[i][2] + halfGroundSize*2/splitNumber;
-            groundVertexBufferData[i][9] = groundVertexBufferData[i][0] + halfGroundSize*2/splitNumber;
-            groundVertexBufferData[i][10] = 0;
-            groundVertexBufferData[i][11] = groundVertexBufferData[i][2];
+    const unsigned int splitNumber = 6;
+    GLfloat groundVertexBufferData[splitNumber * splitNumber][3 * 4];
+    for(int i = 0; i < splitNumber*splitNumber; i++)
+    {
+        groundVertexBufferData[i][0] =
+            -halfGroundSize + halfGroundSize * 2 / splitNumber * (i % 6);
+        groundVertexBufferData[i][1] = 0;
+        groundVertexBufferData[i][2] =
+            -halfGroundSize + halfGroundSize * 2 / splitNumber * (i / 6);
+        groundVertexBufferData[i][3] = groundVertexBufferData[i][0];
+        groundVertexBufferData[i][4] = 0;
+        groundVertexBufferData[i][5] =
+            groundVertexBufferData[i][2] + halfGroundSize * 2 / splitNumber;
+        groundVertexBufferData[i][6] =
+            groundVertexBufferData[i][0] + halfGroundSize * 2 / splitNumber;
+        groundVertexBufferData[i][7] = 0;
+        groundVertexBufferData[i][8] =
+            groundVertexBufferData[i][2] + halfGroundSize * 2 / splitNumber;
+        groundVertexBufferData[i][9] =
+            groundVertexBufferData[i][0] + halfGroundSize * 2 / splitNumber;
+        groundVertexBufferData[i][10] = 0;
+        groundVertexBufferData[i][11] = groundVertexBufferData[i][2];
     }
 
     const GLfloat groundUvBufferData[] = {0.f, 0.f, 1.f, 0.f,
@@ -81,12 +88,13 @@ bool startGame()
         loadBMP_custom("material/building/ground/groundTexture2.bmp");
 
     // Ground's buffers
-    GLuint groundVertexBuffer[splitNumber*splitNumber];
-    glGenBuffers(splitNumber*splitNumber, groundVertexBuffer);
-    for(int i : groundVertexBuffer){
-    glBindBuffer(GL_ARRAY_BUFFER, groundVertexBuffer[i]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(groundVertexBufferData[i]),
-                 groundVertexBufferData[i], GL_STATIC_DRAW);
+    GLuint groundVertexBuffer[splitNumber * splitNumber];
+    glGenBuffers(splitNumber * splitNumber, groundVertexBuffer);
+    for(int i : groundVertexBuffer)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, i);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(groundVertexBufferData[i]),
+                     groundVertexBufferData[i], GL_STATIC_DRAW);
     }
 
     GLuint groundUvBuffer;
@@ -99,8 +107,8 @@ bool startGame()
     Player player;
     auto playerBodyItr = dynamicsWorld.addRigidBody(
         CAPSULE, player.getCharBody().getHalfExtents(),
-        player.getCharBody().getMass(), btVector3(0, 0, 0),
-        btVector3(0,20,0), btVector3(0, 1, 0), 0, 0.9f, 0.7f);
+        player.getCharBody().getMass(), btVector3(0, 0, 0), btVector3(0, 20, 0),
+        btVector3(0, 1, 0), 0, 0.9f, 0.7f);
     ComputeMatrices worldMatrices(window, player, playerBodyItr);
 
     unsigned int numEnemies = 4;
@@ -108,15 +116,13 @@ bool startGame()
         btVector3(100, 40, 100), btVector3(100, 40, -100),
         btVector3(-100, 40, 100), btVector3(-100, 40, -100)};
     Enemy enemies[numEnemies];
-    std::list<DynamicsWorld::ObjectData>::iterator
-        enemyBodyItrs[numEnemies];
+    std::list<DynamicsWorld::ObjectData>::iterator enemyBodyItrs[numEnemies];
     for(int i = 0; i < numEnemies; i++)
     {
         enemyBodyItrs[i] = dynamicsWorld.addRigidBody(
             CAPSULE, enemies[i].getCharBody().getHalfExtents(),
-            enemies[i].getCharBody().getMass(), btVector3(0,0,0),
-            enemySpawnPoint[i], btVector3(0, 1, 0), 0, 0.8f,
-            0.7f);
+            enemies[i].getCharBody().getMass(), btVector3(0, 0, 0),
+            enemySpawnPoint[i], btVector3(0, 1, 0), 0, 0.8f, 0.7f);
     }
 
     loadOBJ enemyObj("material/monster/buba.obj");
@@ -127,15 +133,16 @@ bool startGame()
         glGetAttribLocation(worldProgramID, "vertexPosition_modelspace");
     GLuint enemyVertexUvID = glGetAttribLocation(worldProgramID, "vertexUV");
     GLuint enemyTextureID =
-        glGetAttribLocation(worldProgramID, "myTextureSampler");
+        glGetUniformLocation(worldProgramID, "myTextureSampler");
 
     GLuint enemyVertexBuffer[numEnemies];
     glGenBuffers(numEnemies, enemyVertexBuffer);
-    for(int i : enemyVertexBuffer){
-    glBindBuffer(GL_ARRAY_BUFFER, enemyVertexBuffer[i]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 enemyObj.getIndexedVertices().size() * sizeof(glm::vec3),
-                 &enemyObj.getIndexedVertices()[0], GL_STATIC_DRAW);
+    for(int i : enemyVertexBuffer)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, i);
+        glBufferData(GL_ARRAY_BUFFER,
+                     enemyObj.getIndexedVertices().size() * sizeof(glm::vec3),
+                     enemyObj.getIndexedVertices().data(), GL_STATIC_DRAW);
     }
 
     GLuint enemyUvBuffer;
@@ -143,14 +150,14 @@ bool startGame()
     glBindBuffer(GL_ARRAY_BUFFER, enemyUvBuffer);
     glBufferData(GL_ARRAY_BUFFER,
                  enemyObj.getIndexedUvs().size() * sizeof(glm::vec2),
-                 &enemyObj.getIndexedUvs()[0], GL_STATIC_DRAW);
+                 enemyObj.getIndexedUvs().data(), GL_STATIC_DRAW);
 
     GLuint enemyElementBuffer;
     glGenBuffers(1, &enemyElementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, enemyElementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
                  enemyObj.getIndices().size() * sizeof(unsigned short),
-                 &enemyObj.getIndices()[0], GL_STATIC_DRAW);
+                 enemyObj.getIndices().data(), GL_STATIC_DRAW);
 
     // m16's matrices
     GLuint m16ProjectionMatrixID = glGetUniformLocation(worldProgramID, "P");
@@ -161,7 +168,7 @@ bool startGame()
     glm::mat4 m16ProjectionMatrix =
         glm::perspective(45.f, 4.f / 3.f, 0.1f, 100.f); // TODO: set cliping
     glm::mat4 m16ViewMatrix;
-    glm::mat4 m16ModelMatrix = glm::scale(glm::vec3(0.1,0.1,0.1));
+    glm::mat4 m16ModelMatrix = glm::scale(glm::vec3(0.1, 0.1, 0.1));
 
     // m16's IDs
     GLuint m16VertexPositionModelspaceID =
@@ -171,7 +178,7 @@ bool startGame()
         glGetUniformLocation(worldProgramID, "myTextureSampler");
 
     // m16's data
-    loadOBJ m16obj("material/gun/m16/m16.obj");
+    loadOBJ m16Obj("material/gun/m16/m16.obj");
     GLuint m16Texture = loadBMP_custom("material/gun/m16/m16.bmp");
 
     // m16's buffers
@@ -179,22 +186,22 @@ bool startGame()
     glGenBuffers(1, &m16VertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m16VertexBuffer);
     glBufferData(GL_ARRAY_BUFFER,
-                 m16obj.getIndexedVertices().size() * sizeof(glm::vec3),
-                 &m16obj.getIndexedVertices()[0], GL_STATIC_DRAW);
+                 m16Obj.getIndexedVertices().size() * sizeof(glm::vec3),
+                 m16Obj.getIndexedVertices().data(), GL_STATIC_DRAW);
 
     GLuint m16UvBuffer;
     glGenBuffers(1, &m16UvBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, m16UvBuffer);
     glBufferData(GL_ARRAY_BUFFER,
-                 m16obj.getIndexedUvs().size() * sizeof(glm::vec2),
-                 &m16obj.getIndexedUvs()[0], GL_STATIC_DRAW);
+                 m16Obj.getIndexedUvs().size() * sizeof(glm::vec2),
+                 m16Obj.getIndexedUvs().data(), GL_STATIC_DRAW);
 
     GLuint m16ElementBuffer;
     glGenBuffers(1, &m16ElementBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m16ElementBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                 m16obj.getIndices().size() * sizeof(unsigned short),
-                 &m16obj.getIndices()[0], GL_STATIC_DRAW);
+                 m16Obj.getIndices().size() * sizeof(unsigned short),
+                 m16Obj.getIndices().data(), GL_STATIC_DRAW);
 
     // Ball
     // Ball's data
@@ -207,7 +214,7 @@ bool startGame()
         glGetAttribLocation(worldProgramID, "vertexPosition_modelspace");
     GLuint ballVertexUvID = glGetAttribLocation(worldProgramID, "vertexUV");
     GLuint ballTextureID =
-        glGetAttribLocation(worldProgramID, "myTextureSampler");
+        glGetUniformLocation(worldProgramID, "myTextureSampler");
 
     // Ball's buffers
     GLuint ballVertexBuffer;
@@ -215,28 +222,28 @@ bool startGame()
     glBindBuffer(GL_ARRAY_BUFFER, ballVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER,
                  ballObj.getIndexedVertices().size() * sizeof(glm::vec3),
-                 &ballObj.getIndexedVertices()[0], GL_STATIC_DRAW);
+                 ballObj.getIndexedVertices().data(), GL_STATIC_DRAW);
 
     GLuint ballUvBuffer;
     glGenBuffers(1, &ballUvBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, ballUvBuffer);
     glBufferData(GL_ARRAY_BUFFER,
                  ballObj.getIndexedUvs().size() * sizeof(glm::vec2),
-                 &ballObj.getIndexedUvs()[0], GL_STATIC_DRAW);
+                 ballObj.getIndexedUvs().data(), GL_STATIC_DRAW);
 
     GLuint ballNormalBuffer;
     glGenBuffers(1, &ballNormalBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, ballNormalBuffer);
     glBufferData(GL_ARRAY_BUFFER,
                  ballObj.getIndexedNormals().size() * sizeof(glm::vec3),
-                 &ballObj.getIndexedNormals()[0], GL_STATIC_DRAW);
+                 ballObj.getIndexedNormals().data(), GL_STATIC_DRAW);
 
     GLuint ballElementBuffer;
     glGenBuffers(1, &ballElementBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, ballElementBuffer);
     glBufferData(GL_ARRAY_BUFFER,
                  ballObj.getIndices().size() * sizeof(unsigned short),
-                 &ballObj.getIndices()[0], GL_STATIC_DRAW);
+                 ballObj.getIndices().data(), GL_STATIC_DRAW);
 
     auto ballItr = dynamicsWorld.addRigidBody(
         SPHERE, btVector3(10.f, 0.f, 0.f), 15.f, btVector3(0.f, 0.f, 0.f),
@@ -245,29 +252,38 @@ bool startGame()
 
     double timeBeforeLoop = glfwGetTime();
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
-    std::u32string timeLimit = converter.from_bytes(std::to_string(TIME_LIMIT-static_cast<int>(timeBeforeLoop)).data());
+    std::u32string timeLimit = converter.from_bytes(
+        std::to_string(TIME_LIMIT - static_cast<int>(timeBeforeLoop)).data());
     unsigned int textSize = 128;
     RenderText timeText(timeLimit, textSize);
 
     float halfAimSize = 100;
-    const GLfloat aimVertexBufferData[] = {-halfAimSize+WIDTH,-halfAimSize+HEIGHT,halfAimSize+WIDTH,-halfAimSize+HEIGHT,halfAimSize+WIDTH,halfAimSize+HEIGHT,-halfAimSize+WIDTH,halfAimSize+HEIGHT};
-    const GLint aimUvBufferData[] = {0,0,1,0,1,1,0,1};
+    const GLfloat aimVertexBufferData[] = {
+        -halfAimSize + WIDTH,  -halfAimSize + HEIGHT, halfAimSize + WIDTH,
+        -halfAimSize + HEIGHT, halfAimSize + WIDTH,   halfAimSize + HEIGHT,
+        -halfAimSize + WIDTH,  halfAimSize + HEIGHT};
+    const GLint aimUvBufferData[] = {0, 0, 1, 0, 1, 1, 0, 1};
 
-    GLuint aimProgramID = LoadShaders("shader/2DVertexShader.glsl","shader/2DFragmentShader.glsl");
+    GLuint aimProgramID = LoadShaders("shader/2DVertexShader.glsl",
+                                      "shader/2DFragmentShader.glsl");
     GLuint aimTexture = loadBMP_custom("material/others/aim.bmp");
-    GLuint aimVertexPositionID = glGetAttribLocation(aimProgramID, "vertexPosition_screenspace");
+    GLuint aimVertexPositionID =
+        glGetAttribLocation(aimProgramID, "vertexPosition_screenspace");
     GLuint aimVertexUvID = glGetAttribLocation(aimProgramID, "vertexUV");
-    GLuint aimTextureID = glGetUniformLocation(aimProgramID, "myTextureSampler");
+    GLuint aimTextureID =
+        glGetUniformLocation(aimProgramID, "myTextureSampler");
 
     GLuint aimVertexBuffer;
     glGenBuffers(1, &aimVertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, aimVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(aimVertexBufferData),aimVertexBufferData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(aimVertexBufferData),
+                 aimVertexBufferData, GL_STATIC_DRAW);
 
     GLuint aimUvBuffer;
     glGenBuffers(1, &aimUvBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, aimUvBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(aimUvBufferData), aimUvBufferData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(aimUvBufferData), aimUvBufferData,
+                 GL_STATIC_DRAW);
 
     double lastTime = glfwGetTime();
     do
@@ -277,13 +293,12 @@ bool startGame()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
-//        glEnable(GL_CULL_FACE);
-//        glCullFace(GL_BACK);
+        //        glEnable(GL_CULL_FACE);
+        //        glCullFace(GL_BACK);
         glDepthFunc(GL_LESS);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glUseProgram(worldProgramID);
-
 
         // Draw world(ground,ball)
         worldMatrices.computeMatricesFromInputs(deltaTime);
@@ -301,64 +316,64 @@ bool startGame()
         glUniformMatrix4fv(groundModelMatrixID, 1, GL_FALSE,
                            &groundModelMatrix[0][0]);
 
-        for(int i = 0; i < splitNumber*splitNumber; i++){
-        glEnableVertexAttribArray(groundVertexPositionModelspaceID);
-        glBindBuffer(GL_ARRAY_BUFFER, groundVertexBuffer[i]);
-        glVertexAttribPointer(groundVertexPositionModelspaceID, 3, GL_FLOAT,
-                              GL_FALSE, 0, static_cast<GLvoid*>(0));
+        for(int i : groundVertexBuffer)
+        {
+            glEnableVertexAttribArray(groundVertexPositionModelspaceID);
+            glBindBuffer(GL_ARRAY_BUFFER, i);
+            glVertexAttribPointer(groundVertexPositionModelspaceID, 3, GL_FLOAT,
+                                  GL_FALSE, 0, static_cast<GLvoid*>(0));
 
-        glBindTexture(GL_TEXTURE_2D, groundTexture);
+            glBindTexture(GL_TEXTURE_2D, groundTexture);
 
-        glUniform1i(groundTextureID, 0);
+            glUniform1i(groundTextureID, 0);
 
-        glEnableVertexAttribArray(groundVertexUvID);
-        glBindBuffer(GL_ARRAY_BUFFER, groundUvBuffer);
-        glVertexAttribPointer(groundVertexUvID, 2, GL_FLOAT, GL_FALSE, 0,
-                              static_cast<GLvoid*>(0));
+            glEnableVertexAttribArray(groundVertexUvID);
+            glBindBuffer(GL_ARRAY_BUFFER, groundUvBuffer);
+            glVertexAttribPointer(groundVertexUvID, 2, GL_FLOAT, GL_FALSE, 0,
+                                  static_cast<GLvoid*>(0));
 
-        glDrawArrays(GL_QUADS, 0, 4);
+            glDrawArrays(GL_QUADS, 0, 4);
 
-        glDisableVertexAttribArray(groundVertexPositionModelspaceID);
-        glDisableVertexAttribArray(groundVertexUvID);
+            glDisableVertexAttribArray(groundVertexPositionModelspaceID);
+            glDisableVertexAttribArray(groundVertexUvID);
         }
 
         // Draw enemies
 
         for(int i = 0; i < numEnemies; i++)
         {
-            glm::mat4 enemyModelMatrix;
-            glm::vec3 enemyPos =
-                glm::vec3(enemyBodyItrs[i]->body.getCenterOfMassPosition().x(),
+            glm::vec3 enemyPos(enemyBodyItrs[i]->body.getCenterOfMassPosition().x(),
                           enemyBodyItrs[i]->body.getCenterOfMassPosition().y(),
                           enemyBodyItrs[i]->body.getCenterOfMassPosition().z());
-            enemyModelMatrix = glm::translate(enemyPos) *
-            glm::rotate(
-                            atan2(enemyPos.x, enemyPos.y), glm::vec3(0, 1, 0)) *
-                                    glm::scale(glm::vec3(0.3, 0.3, 0.3));
+            glm::mat4 enemyModelMatrix =
+                glm::translate(enemyPos) *
+                glm::rotate(atan2(enemyPos.x, enemyPos.y), glm::vec3(0, 1, 0)) *
+                glm::scale(glm::vec3(0.05f, 0.05f, 0.05f));
 
-        glUniformMatrix4fv(enemyModelMatrixID, 1, GL_FALSE,
-                           &enemyModelMatrix[0][0]);
+            glUniformMatrix4fv(enemyModelMatrixID, 1, GL_FALSE,
+                               &enemyModelMatrix[0][0]);
 
-        glBindTexture(GL_TEXTURE_2D, enemyTexture);
+            glEnableVertexAttribArray(enemyVertexPositionID);
+            glBindBuffer(GL_ARRAY_BUFFER, enemyVertexBuffer[i]);
+            glVertexAttribPointer(enemyVertexPositionID, 3, GL_FLOAT, GL_FALSE,
+                                  0, static_cast<GLvoid*>(0));
 
-        glUniform1i(enemyTextureID, 0);
+            glBindTexture(GL_TEXTURE_2D, enemyTexture);
 
-        glEnableVertexAttribArray(enemyVertexPositionID);
-        glBindBuffer(GL_ARRAY_BUFFER, enemyVertexBuffer[i]);
-        glVertexAttribPointer(enemyVertexPositionID, 3, GL_FLOAT, GL_FALSE, 0,
-                              static_cast<GLvoid*>(0));
+            glUniform1i(enemyTextureID, 0);
 
-        glEnableVertexAttribArray(enemyVertexUvID);
-        glBindBuffer(GL_ARRAY_BUFFER, enemyUvBuffer);
-        glVertexAttribPointer(enemyVertexUvID, 2, GL_FLOAT, GL_FALSE, 0,
-                              static_cast<GLvoid*>(0));
+            glEnableVertexAttribArray(enemyVertexUvID);
+            glBindBuffer(GL_ARRAY_BUFFER, enemyUvBuffer);
+            glVertexAttribPointer(enemyVertexUvID, 2, GL_FLOAT, GL_FALSE, 0,
+                                  static_cast<GLvoid*>(0));
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, enemyElementBuffer);
-        glDrawElements(enemyObj.getPolygonType(), enemyObj.getIndices().size(),
-                       GL_UNSIGNED_SHORT, nullptr);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, enemyElementBuffer);
+            glDrawElements(enemyObj.getPolygonType(),
+                           enemyObj.getIndices().size(), GL_UNSIGNED_SHORT,
+                           nullptr);
 
-        glDisableVertexAttribArray(enemyVertexPositionID);
-        glDisableVertexAttribArray(enemyVertexUvID);
+            glDisableVertexAttribArray(enemyVertexPositionID);
+            glDisableVertexAttribArray(enemyVertexUvID);
         }
         // Draw ball
         glm::vec3 ballPos(ballItr->body.getCenterOfMassPosition().x(),
@@ -370,7 +385,8 @@ bool startGame()
                            ballItr->body.getOrientation().getAxis().z());
         glm::mat4 ballTranslationMatrix = glm::translate(ballPos);
         glm::mat4 ballRotationMatrix = glm::rotate(ballAngle, ballAxis);
-        glm::mat4 ballModelMatrix = ballTranslationMatrix * ballRotationMatrix * glm::scale(glm::vec3(10,10,10));
+        glm::mat4 ballModelMatrix = ballTranslationMatrix * ballRotationMatrix *
+                                    glm::scale(glm::vec3(10, 10, 10));
 
         glUniformMatrix4fv(ballModelMatrixID, 1, GL_FALSE,
                            &ballModelMatrix[0][0]);
@@ -419,7 +435,7 @@ bool startGame()
                               static_cast<GLvoid*>(0));
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m16ElementBuffer);
-        glDrawElements(GL_TRIANGLES, m16obj.getIndices().size(),
+        glDrawElements(m16Obj.getPolygonType(), m16Obj.getIndices().size(),
                        GL_UNSIGNED_SHORT, nullptr);
 
         glDisableVertexAttribArray(m16VertexPositionModelspaceID);
@@ -429,36 +445,13 @@ bool startGame()
 
         // Draw 2D here
         // Draw time counter
-        timeLimit = converter.from_bytes(std::to_string(TIME_LIMIT-static_cast<int>(glfwGetTime()-timeBeforeLoop)).data());
+        timeLimit = converter.from_bytes(
+            std::to_string(TIME_LIMIT -
+                           static_cast<int>(glfwGetTime() - timeBeforeLoop))
+                .data());
         timeText.setText(timeLimit);
-        timeText.render(1440-textSize,832*2-textSize*2);
+        timeText.render(1440 - textSize, 832 * 2 - textSize * 2);
 
-        // Draw aim
-//        glDisable(GL_BLEND);
-//        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE,GL_ONE);
-        glEnableVertexAttribArray(aimVertexPositionID);
-        glBindBuffer(GL_ARRAY_BUFFER, aimVertexBuffer);
-        glVertexAttribPointer(aimVertexPositionID, 2, GL_FLOAT,
-                              GL_FALSE, 0, static_cast<GLvoid*>(0));
-
-        glBindTexture(GL_TEXTURE_2D, aimTexture);
-
-        glUniform1i(aimTextureID, 0);
-
-        glEnableVertexAttribArray(aimVertexUvID);
-        glBindBuffer(GL_ARRAY_BUFFER, aimUvBuffer);
-        glVertexAttribPointer(aimVertexUvID, 2, GL_INT, GL_FALSE, 0,
-                              static_cast<GLvoid*>(0));
-
-        glDrawArrays(GL_QUADS, 0, 4);
-
-        glDisableVertexAttribArray(aimVertexPositionID);
-        glDisableVertexAttribArray(aimVertexUvID);
-
-        glfwSwapBuffers(window);
-        glfwPollEvents();
-        glDisable(GL_BLEND);
 
     } while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
             glfwWindowShouldClose(window) == 0);
@@ -466,7 +459,7 @@ bool startGame()
     glDeleteBuffers(1, &m16VertexBuffer);
     glDeleteBuffers(1, &m16UvBuffer);
     glDeleteBuffers(1, &m16ElementBuffer);
-    glDeleteBuffers(splitNumber*splitNumber, groundVertexBuffer);
+    glDeleteBuffers(splitNumber * splitNumber, groundVertexBuffer);
     glDeleteBuffers(1, &groundUvBuffer);
     glDeleteBuffers(1, &ballVertexBuffer);
     glDeleteBuffers(1, &ballUvBuffer);
@@ -502,7 +495,9 @@ glm::mat4 gunViewMatrixHandler(GLFWwindow* window)
     glm::mat4 gunViewMatrix;
     if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
     {
-        gunViewMatrix = glm::lookAt(glm::vec3(3.2f, 1.5f, 0), glm::vec3(-10, 1.5f, 0), glm::vec3(0, 1, 0));
+        gunViewMatrix =
+            glm::lookAt(glm::vec3(3.2f, 1.5f, 0), glm::vec3(-10, 1.5f, 0),
+                        glm::vec3(0, 1, 0));
     }
     else
     {
