@@ -23,7 +23,7 @@
 #include "util/windowcreater.h"
 
 constexpr unsigned int WIDTH = 1440;
-constexpr unsigned int HEIGHT = 832;
+constexpr unsigned int HEIGHT = 864;
 constexpr unsigned int TIME_LIMIT = 90;
 
 bool startGame()
