@@ -10,6 +10,7 @@ find_package(OpenAL REQUIRED)
 find_package(ALURE REQUIRED)
 find_package(PhysFS REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(OpenCV REQUIRED)
 
 if( CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR )
     message( FATAL_ERROR "Please select another Build Directory ! (and give it a clever name, like bin_Visual2012_64bits/)" )
@@ -34,6 +35,7 @@ include_directories(
     ${PHYSFS_INCLUDE_DIR}
     ${BULLET_INCLUDE_DIRS}
     ${FREETYPE_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}
     ${CMAKE_BINARY_DIR}
 )
@@ -47,4 +49,5 @@ target_link_libraries(${PROJECT_NAME}
     ${PHYSFS_LIBRARY}
     ${BULLET_LIBRARIES}
     ${FREETYPE_LIBRARIES}
+    ${OpenCV_LIBRARIES}
 )

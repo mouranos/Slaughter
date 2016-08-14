@@ -23,7 +23,7 @@
 #include "util/windowcreater.h"
 
 constexpr unsigned int WIDTH = 1440;
-constexpr unsigned int HEIGHT = 900;
+constexpr unsigned int HEIGHT = 832;
 constexpr unsigned int TIME_LIMIT = 90;
 
 bool startGame()
@@ -59,7 +59,7 @@ bool startGame()
     float halfGroundSize = 600.f;
     const unsigned int splitNumber = 6;
     GLfloat groundVertexBufferData[splitNumber * splitNumber][3 * 4];
-    for(int i = 0; i < splitNumber*splitNumber; i++)
+    for(int i = 0; i < splitNumber * splitNumber; i++)
     {
         groundVertexBufferData[i][0] =
             -halfGroundSize + halfGroundSize * 2 / splitNumber * (i % 6);
@@ -266,7 +266,7 @@ bool startGame()
 
     GLuint aimProgramID = LoadShaders("shader/2DVertexShader.glsl",
                                       "shader/2DFragmentShader.glsl");
-    GLuint aimTexture = loadBMP_custom("material/others/aim.bmp");
+    GLuint aimTexture = loadImage("material/others/aim.png");
     GLuint aimVertexPositionID =
         glGetAttribLocation(aimProgramID, "vertexPosition_screenspace");
     GLuint aimVertexUvID = glGetAttribLocation(aimProgramID, "vertexUV");
@@ -292,11 +292,9 @@ bool startGame()
         dynamicsWorld.getDynamicsWorld().stepSimulation(deltaTime);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
         //        glEnable(GL_CULL_FACE);
         //        glCullFace(GL_BACK);
         glDepthFunc(GL_LESS);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glUseProgram(worldProgramID);
 
@@ -342,9 +340,10 @@ bool startGame()
 
         for(int i = 0; i < numEnemies; i++)
         {
-            glm::vec3 enemyPos(enemyBodyItrs[i]->body.getCenterOfMassPosition().x(),
-                          enemyBodyItrs[i]->body.getCenterOfMassPosition().y(),
-                          enemyBodyItrs[i]->body.getCenterOfMassPosition().z());
+            glm::vec3 enemyPos(
+                enemyBodyItrs[i]->body.getCenterOfMassPosition().x(),
+                enemyBodyItrs[i]->body.getCenterOfMassPosition().y(),
+                enemyBodyItrs[i]->body.getCenterOfMassPosition().z());
             glm::mat4 enemyModelMatrix =
                 glm::translate(enemyPos) *
                 glm::rotate(atan2(enemyPos.x, enemyPos.y), glm::vec3(0, 1, 0)) *
@@ -452,6 +451,31 @@ bool startGame()
         timeText.setText(timeLimit);
         timeText.render(1440 - textSize, 832 * 2 - textSize * 2);
 
+        // Draw aim
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_BLEND);
+        glEnableVertexAttribArray(aimVertexPositionID);
+        glBindBuffer(GL_ARRAY_BUFFER, aimVertexBuffer);
+        glVertexAttribPointer(aimVertexPositionID, 2, GL_FLOAT, GL_FALSE, 0,
+                              static_cast<GLvoid*>(0));
+
+        glBindTexture(GL_TEXTURE_2D, aimTexture);
+
+        glUniform1i(aimTextureID, 0);
+
+        glEnableVertexAttribArray(aimVertexUvID);
+        glBindBuffer(GL_ARRAY_BUFFER, aimUvBuffer);
+        glVertexAttribPointer(aimVertexUvID, 2, GL_INT, GL_FALSE, 0,
+                              static_cast<GLvoid*>(0));
+
+        glDrawArrays(GL_QUADS, 0, 4);
+
+        glDisableVertexAttribArray(aimVertexPositionID);
+        glDisableVertexAttribArray(aimVertexUvID);
+        glDisable(GL_BLEND);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
 
     } while(glfwGetKey(window, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
             glfwWindowShouldClose(window) == 0);

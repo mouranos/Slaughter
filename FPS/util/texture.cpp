@@ -4,6 +4,11 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+//#include <opencv2/imgcodecs/imgcodecs_c.h>
+//#include <opencv2/core/core.hpp>
+//#include <opencv/highgui.h>
+#include <opencv2/imgcodecs.hpp>
+#include <memory>
 #include "texture.h"
 
 GLuint loadBMP_custom(const char * imagepath){
@@ -212,3 +217,55 @@ GLuint loadDDS(const char * imagepath){
 
 
 }
+
+
+GLuint loadImage(const char *imagepath)
+{
+       cv::Mat image = cv::imread(imagepath);
+
+//       GLubyte imageData[image.cols*image.rows*image.channels()];
+       GLubyte* imageData = new GLubyte[image.cols*image.rows*image.channels()];
+
+       for(int i = 0; i < image.cols*image.rows*image.channels(); i+=image.channels())
+       {
+           imageData[i] = image.data[i+2];
+           imageData[i+1] = image.data[i+1];
+           imageData[i+2] = image.data[i];
+           if(image.channels() > 3)
+           {
+               imageData[i+3] = image.data[i+3];
+           }
+       }
+
+       GLuint imageTex;
+       glGenTextures(1, &imageTex);
+          glBindTexture(GL_TEXTURE_2D, imageTex);
+
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+       switch(image.channels())
+       {
+       case 1:
+           glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, image.cols, image.rows, 0, GL_RED,
+                        GL_UNSIGNED_BYTE, imageData);
+           break;
+       case 3:
+           glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.cols, image.rows, 0, GL_RGB,
+                        GL_UNSIGNED_BYTE, imageData);
+           break;
+       case 4:
+           glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image.cols, image.rows, 0, GL_BGRA,
+                        GL_UNSIGNED_BYTE, imageData);
+           break;
+       }
+
+
+       delete[] imageData;
+       return imageTex;
+}
+
