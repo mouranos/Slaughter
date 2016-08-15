@@ -103,6 +103,48 @@ bool startGame()
     glBufferData(GL_ARRAY_BUFFER, sizeof(groundUvBufferData),
                  groundUvBufferData, GL_STATIC_DRAW);
 
+    GLuint wallModelMatrixID = glGetUniformLocation(worldProgramID, "M");
+    GLuint wallVertexPositionID = glGetAttribLocation(worldProgramID, "vertexPosition_modelspace");
+    GLuint wallVertexUvID = glGetAttribLocation(worldProgramID, "vertexUV");
+    GLuint wallTextureID = glGetUniformLocation(worldProgramID, "myTextureSampler");
+
+    GLuint wallTexture = loadImage("material/building/wall/wallTexture.png");
+
+    GLfloat wallHeight = 100;
+    GLfloat wallVertexBufferData[4][12] = {
+        {-halfGroundSize, 0, -halfGroundSize, -halfGroundSize, wallHeight,
+         -halfGroundSize, -halfGroundSize, wallHeight, halfGroundSize,
+         -halfGroundSize, 0, halfGroundSize},
+        {-halfGroundSize, 0, halfGroundSize, -halfGroundSize, wallHeight,
+         halfGroundSize, halfGroundSize, wallHeight, halfGroundSize,
+         halfGroundSize, 0, halfGroundSize},
+        {halfGroundSize, 0, halfGroundSize, halfGroundSize, wallHeight,
+         halfGroundSize, halfGroundSize, wallHeight, -halfGroundSize,
+         halfGroundSize, 0, -halfGroundSize},
+        {halfGroundSize, 0, -halfGroundSize, halfGroundSize, wallHeight,
+         -halfGroundSize, -halfGroundSize, wallHeight, -halfGroundSize,
+         -halfGroundSize, 0, -halfGroundSize}};
+
+    GLfloat wallUvBufferData[] = {0.f, 1.f, 0.f, 0.f, 1.f, 0.f, 1.f, 1.f};
+
+    GLuint wallVertexBuffers[4];
+    glGenBuffers(4, wallVertexBuffers);
+    for(int i = 0; i < 4; i++)
+    {
+    glBindBuffer(GL_ARRAY_BUFFER, wallVertexBuffers[i]);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(wallVertexBufferData),
+                 wallVertexBufferData[i],
+                 GL_STATIC_DRAW);
+    }
+
+    GLuint wallUvBuffer;
+    glGenBuffers(1, &wallUvBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, wallUvBuffer);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(wallUvBufferData),
+                 wallUvBufferData, GL_STATIC_DRAW);
+
     // Configure characters
     Player player;
     auto playerBodyItr = dynamicsWorld.addRigidBody(
@@ -298,18 +340,20 @@ bool startGame()
 
         glUseProgram(worldProgramID);
 
-        // Draw world(ground,ball)
+        // Draw world
+        // Draw field
         worldMatrices.computeMatricesFromInputs(deltaTime);
 
         glm::mat4 worldProjectionMatrix = worldMatrices.getProjectionMatrix();
         glm::mat4 worldViewMatrix = worldMatrices.getViewMatrix();
 
-        glm::mat4 groundModelMatrix(1.0);
 
         glUniformMatrix4fv(worldProjectionMatrixID, 1, GL_FALSE,
                            &worldProjectionMatrix[0][0]);
         glUniformMatrix4fv(worldViewMatrixID, 1, GL_FALSE,
                            &worldViewMatrix[0][0]);
+
+        glm::mat4 groundModelMatrix(1.f);
 
         glUniformMatrix4fv(groundModelMatrixID, 1, GL_FALSE,
                            &groundModelMatrix[0][0]);
@@ -334,6 +378,30 @@ bool startGame()
 
             glDisableVertexAttribArray(groundVertexPositionModelspaceID);
             glDisableVertexAttribArray(groundVertexUvID);
+        }
+
+        glm::mat4 wallModelMatrix(1.f);
+
+        glUniformMatrix4fv(wallModelMatrixID, 1, GL_FALSE, &wallModelMatrix[0][0]);
+
+        for(int i : wallVertexBuffers)
+        {
+            glEnableVertexAttribArray(wallVertexPositionID);
+            glBindBuffer(GL_ARRAY_BUFFER, i);
+            glVertexAttribPointer(wallVertexPositionID, 3, GL_FLOAT, GL_FALSE, 0, static_cast<GLvoid*>(0));
+
+            glBindTexture(GL_TEXTURE_2D, wallTexture);
+            glUniform1i(wallTextureID, 0);
+
+            glEnableVertexAttribArray(wallVertexUvID);
+            glBindBuffer(GL_ARRAY_BUFFER, wallUvBuffer);
+            glVertexAttribPointer(wallVertexUvID, 2, GL_FLOAT, GL_FALSE, 0,
+                                  static_cast<GLvoid*>(0));
+
+            glDrawArrays(GL_QUADS, 0, 4);
+
+            glDisableVertexAttribArray(wallVertexPositionID);
+            glDisableVertexAttribArray(wallVertexUvID);
         }
 
         // Draw enemies
@@ -452,27 +520,29 @@ bool startGame()
         timeText.render(1440 - textSize, 832 * 2 - textSize * 2);
 
         // Draw aim
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        if(glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT))
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_BLEND);
-        glEnableVertexAttribArray(aimVertexPositionID);
-        glBindBuffer(GL_ARRAY_BUFFER, aimVertexBuffer);
-        glVertexAttribPointer(aimVertexPositionID, 2, GL_FLOAT, GL_FALSE, 0,
-                              static_cast<GLvoid*>(0));
+            glEnableVertexAttribArray(aimVertexPositionID);
+            glBindBuffer(GL_ARRAY_BUFFER, aimVertexBuffer);
+            glVertexAttribPointer(aimVertexPositionID, 2, GL_FLOAT, GL_FALSE, 0,
+                                  static_cast<GLvoid*>(0));
 
-        glBindTexture(GL_TEXTURE_2D, aimTexture);
+            glBindTexture(GL_TEXTURE_2D, aimTexture);
 
-        glUniform1i(aimTextureID, 0);
+            glUniform1i(aimTextureID, 0);
 
-        glEnableVertexAttribArray(aimVertexUvID);
-        glBindBuffer(GL_ARRAY_BUFFER, aimUvBuffer);
-        glVertexAttribPointer(aimVertexUvID, 2, GL_INT, GL_FALSE, 0,
-                              static_cast<GLvoid*>(0));
+            glEnableVertexAttribArray(aimVertexUvID);
+            glBindBuffer(GL_ARRAY_BUFFER, aimUvBuffer);
+            glVertexAttribPointer(aimVertexUvID, 2, GL_INT, GL_FALSE, 0,
+                                  static_cast<GLvoid*>(0));
 
-        glDrawArrays(GL_QUADS, 0, 4);
+            glDrawArrays(GL_QUADS, 0, 4);
 
-        glDisableVertexAttribArray(aimVertexPositionID);
-        glDisableVertexAttribArray(aimVertexUvID);
-        glDisable(GL_BLEND);
+            glDisableVertexAttribArray(aimVertexPositionID);
+            glDisableVertexAttribArray(aimVertexUvID);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -485,6 +555,8 @@ bool startGame()
     glDeleteBuffers(1, &m16ElementBuffer);
     glDeleteBuffers(splitNumber * splitNumber, groundVertexBuffer);
     glDeleteBuffers(1, &groundUvBuffer);
+    glDeleteBuffers(4, wallVertexBuffers);
+    glDeleteBuffers(1, &wallUvBuffer);
     glDeleteBuffers(1, &ballVertexBuffer);
     glDeleteBuffers(1, &ballUvBuffer);
     glDeleteBuffers(1, &ballNormalBuffer);
@@ -498,6 +570,7 @@ bool startGame()
     glDeleteProgram(aimProgramID);
     glDeleteTextures(1, &m16Texture);
     glDeleteTextures(1, &groundTexture);
+    glDeleteTextures(1, &wallTexture);
     glDeleteTextures(1, &ballTexture);
     glDeleteTextures(1, &enemyTexture);
     glDeleteTextures(1, &aimTexture);
