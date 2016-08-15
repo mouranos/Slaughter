@@ -32,7 +32,7 @@ DynamicsWorld::addRigidBody(SHAPE shape, btVector3 halfExtents, btScalar mass,
                             btScalar friction)
 {
     std::unique_ptr<btCollisionShape> collisionShape;
-    if(shape == CUBE)
+    if(shape == BOX)
     {
         collisionShape = std::make_unique<btBoxShape>(halfExtents);
     }

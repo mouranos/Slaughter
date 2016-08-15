@@ -7,7 +7,7 @@
 
 enum SHAPE
 {
-    CUBE,
+    BOX,
     SPHERE,
     CAPSULE
 };
