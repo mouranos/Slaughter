@@ -103,6 +103,14 @@ bool startGame()
     glBufferData(GL_ARRAY_BUFFER, sizeof(groundUvBufferData),
                  groundUvBufferData, GL_STATIC_DRAW);
 
+
+    GLfloat wallHeight = 100;
+    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize,wallHeight,1.f),0,btVector3(0,0,0),btVector3(0,0,halfGroundSize+1),btVector3(0,1,0),0.f,0.f, 0.7f);
+    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize,wallHeight,1.f),0,btVector3(0,0,0),btVector3(0,0,-halfGroundSize-1),btVector3(0,1,0),0.f,0.f, 0.7f);
+    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize,wallHeight,1.f),0,btVector3(0,0,0),btVector3(halfGroundSize+1, 0,0),btVector3(0,1,0),btRadians(90.f),0.f, 0.7f);
+    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize,wallHeight,1.f),0,btVector3(0,0,0),btVector3(-halfGroundSize-1,0,0),btVector3(0,1,0),btRadians(90.f),0.f, 0.7f);
+
+
     GLuint wallModelMatrixID = glGetUniformLocation(worldProgramID, "M");
     GLuint wallVertexPositionID = glGetAttribLocation(worldProgramID, "vertexPosition_modelspace");
     GLuint wallVertexUvID = glGetAttribLocation(worldProgramID, "vertexUV");
@@ -110,7 +118,6 @@ bool startGame()
 
     GLuint wallTexture = loadImage("material/building/wall/wallTexture.png");
 
-    GLfloat wallHeight = 100;
     GLfloat wallVertexBufferData[4][12] = {
         {-halfGroundSize, 0, -halfGroundSize, -halfGroundSize, wallHeight,
          -halfGroundSize, -halfGroundSize, wallHeight, halfGroundSize,
