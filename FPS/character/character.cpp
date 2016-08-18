@@ -2,10 +2,10 @@
 
 // class Chatacter
 
-Character::Character(int hp, int maxSpeed, int power, btVector3 halfExtents,
-                     btScalar mass)
-    : hp_(std::move(hp)), maxSpeed_(std::move(maxSpeed)), power_(std::move(power)),
-      charBody_(halfExtents, mass)
+Character::Character(DynamicsWorld::ObjectData& characterData, int hp,
+                     int maxSpeed, int power)
+    : characterData_(characterData), hp_(std::move(hp)),
+      maxSpeed_(std::move(maxSpeed)), power_(std::move(power))
 {
 }
 
@@ -14,9 +14,18 @@ int Character::getHp()
     return hp_;
 }
 
+void Character::setHp(int hp){
+    hp_ = hp;
+}
+
 int Character::getPower()
 {
     return power_;
+}
+
+void Character::setPower(int power)
+{
+    power_ = power;
 }
 
 int Character::getMaxSpeed()
@@ -24,38 +33,17 @@ int Character::getMaxSpeed()
     return maxSpeed_;
 }
 
-void Character::halveMaxSpeed()
+void Character::setMaxSpeed(int maxSpeed)
 {
-    maxSpeed_ /= 2;
+    maxSpeed_ = maxSpeed;
 }
 
-void Character::doubleMaxSpeed(){
-    maxSpeed_ *= 2;
+DynamicsWorld::ObjectData& Character::getObjectData()
+{
+    return characterData_;
 }
 
-btVector3 Character::getDirection()
+void Character::moveTowardTarget(Character target)
 {
-    return direction_;
-}
-
-
-// struct CharacterBody
-
-Character::CharacterBody::CharacterBody(btVector3 halfExtents, btScalar mass)
-    : halfExtents_(std::move(halfExtents)), mass_(std::move(mass))
-{}
-
-Character::CharacterBody Character::getCharBody()
-{
-    return charBody_;
-}
-
-btVector3 Character::CharacterBody::getHalfExtents()
-{
-    return halfExtents_;
-}
-
-btScalar Character::CharacterBody::getMass()
-{
-    return mass_;
+    getObjectData().body.setLinearVelocity((target.getObjectData().body.getCenterOfMassPosition() - getObjectData().body.getCenterOfMassPosition()).normalize() * getMaxSpeed());
 }

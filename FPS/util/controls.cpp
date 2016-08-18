@@ -7,14 +7,13 @@
 
 // TODO: fix keys.
 ComputeMatrices::ComputeMatrices(
-    GLFWwindow* window, Player player,
-    std::list<DynamicsWorld::ObjectData>::iterator itr)
-    : window_(window), player_(player), itr_(itr),
-      position_(itr_->body.getCenterOfMassPosition().x(),
-                itr_->body.getCenterOfMassPosition().y()*2,
-                itr_->body.getCenterOfMassPosition().z()),
+    GLFWwindow* window, Character player)
+    : window_(window), player_(player),
+      position_(player_.getObjectData().body.getCenterOfMassPosition().x(),
+                player_.getObjectData().body.getCenterOfMassPosition().y()*2,
+                player_.getObjectData().body.getCenterOfMassPosition().z()),
       horizontalAngle_(0.f), verticalAngle_(0.f), initialFov_(45.f),
-      speed_(0.f), mouseSpeed_(0.0025f)
+      speed_(0.f), mouseSpeed_(0.0025f), onGroundHeight_(position_.y)
 {
     int windowWidth, windowHeight;
     glfwGetWindowSize(window_, &windowWidth, &windowHeight);
@@ -71,15 +70,10 @@ void ComputeMatrices::computeMatricesFromInputs(float deltaTime)
     btVector3 forward(btVector3(eyeDirection.x,0,eyeDirection.z).normalize());
     right /= right.length();
 
-    itr_->body.setAngularFactor(0.f);
+    player_.getObjectData().body.setAngularFactor(0.f);
     btVector3 linearVelocity(0, 0, 0);
 
     bool shiftIsPressed = false;
-    if(glfwGetKey(window_, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    {
-        player_.halveMaxSpeed();
-        shiftIsPressed = true;
-    }
 
     if(glfwGetKey(window_, GLFW_KEY_A) == GLFW_RELEASE &&
        glfwGetKey(window_, GLFW_KEY_W) == GLFW_RELEASE &&
@@ -94,8 +88,8 @@ void ComputeMatrices::computeMatricesFromInputs(float deltaTime)
         {
             speed_ = 0;
         }
-        if(itr_->body.getLinearVelocity().length() != 0){
-            linearVelocity = const_cast<btVector3&>(itr_->body.getLinearVelocity()).normalize();
+        if(player_.getObjectData().body.getLinearVelocity().length() != 0){
+            linearVelocity = const_cast<btVector3&>(player_.getObjectData().body.getLinearVelocity()).normalize();
             linearVelocity.setY(0);
         }
     }
@@ -103,7 +97,7 @@ void ComputeMatrices::computeMatricesFromInputs(float deltaTime)
     {
         if(speed_ < player_.getMaxSpeed())
         {
-            speed_ += 10000 * deltaTime;
+            speed_ += 200 * deltaTime;
         }
         else
         {
@@ -135,24 +129,18 @@ void ComputeMatrices::computeMatricesFromInputs(float deltaTime)
     }
     if(glfwGetKey(window_, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        if(itr_->body.getCenterOfMassPosition().y() <=
-           player_.getCharBody().getHalfExtents().y())
+        if(player_.getObjectData().body.getCenterOfMassPosition().y() <=
+                onGroundHeight_)
         {
             btScalar magnitude =
-                (btScalar(1.f) / itr_->body.getInvMass()) * btScalar(100.f);
-            itr_->body.applyCentralImpulse(btVector3(0, 1000000, 0) * magnitude);
-
+                (btScalar(1.f) / player_.getObjectData().body.getInvMass()) * btScalar(100.f);
+            player_.getObjectData().body.applyCentralImpulse(btVector3(0, 100, 0) * magnitude);
         }
     }
-    itr_->body.setLinearVelocity(linearVelocity * speed_ * deltaTime);
-    if(shiftIsPressed)
-    {
-        player_.doubleMaxSpeed();
-        shiftIsPressed = false;
-    }
-    position_ = glm::vec3(itr_->body.getCenterOfMassPosition().x(),
-                          itr_->body.getCenterOfMassPosition().y()*2,
-                          itr_->body.getCenterOfMassPosition().z());
-    projectionMatrix_ = glm::perspective(initialFov_, 4.f / 3.f, 0.1f, 1000.f);
+    player_.getObjectData().body.setLinearVelocity(linearVelocity * speed_);
+    position_ = glm::vec3(player_.getObjectData().body.getCenterOfMassPosition().x(),
+                          player_.getObjectData().body.getCenterOfMassPosition().y()*2,
+                          player_.getObjectData().body.getCenterOfMassPosition().z());
+    projectionMatrix_ = glm::perspective(initialFov_, 4.f / 3.f, 0.1f, 2000.f);
     viewMatrix_ = glm::lookAt(position_, position_ + eyeDirection, up);
 }

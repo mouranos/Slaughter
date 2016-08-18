@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <functional>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -10,9 +11,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "character/enemy.h"
-#include "character/player.h"
 #include "game.h"
+#include "character/character.h"
 #include "util/bulletgenobj.h"
 #include "util/controls.h"
 #include "util/objloader.h"
@@ -103,18 +103,30 @@ bool startGame()
     glBufferData(GL_ARRAY_BUFFER, sizeof(groundUvBufferData),
                  groundUvBufferData, GL_STATIC_DRAW);
 
-
     GLfloat wallHeight = 100;
-    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize,wallHeight,1.f),0,btVector3(0,0,0),btVector3(0,0,halfGroundSize+1),btVector3(0,1,0),0.f,0.f, 0.7f);
-    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize,wallHeight,1.f),0,btVector3(0,0,0),btVector3(0,0,-halfGroundSize-1),btVector3(0,1,0),0.f,0.f, 0.7f);
-    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize,wallHeight,1.f),0,btVector3(0,0,0),btVector3(halfGroundSize+1, 0,0),btVector3(0,1,0),btRadians(90.f),0.f, 0.7f);
-    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize,wallHeight,1.f),0,btVector3(0,0,0),btVector3(-halfGroundSize-1,0,0),btVector3(0,1,0),btRadians(90.f),0.f, 0.7f);
-
+    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize, wallHeight, 1.f),
+                               0, btVector3(0, 0, 0),
+                               btVector3(0, 0, halfGroundSize + 1),
+                               btVector3(0, 1, 0), 0.f, 0.f, 0.0f);
+    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize, wallHeight, 1.f),
+                               0, btVector3(0, 0, 0),
+                               btVector3(0, 0, -halfGroundSize - 1),
+                               btVector3(0, 1, 0), 0.f, 0.f, 0.0f);
+    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize, wallHeight, 1.f),
+                               0, btVector3(0, 0, 0),
+                               btVector3(halfGroundSize + 1, 0, 0),
+                               btVector3(0, 1, 0), btRadians(90.f), 0.f, 0.0f);
+    dynamicsWorld.addRigidBody(BOX, btVector3(halfGroundSize, wallHeight, 1.f),
+                               0, btVector3(0, 0, 0),
+                               btVector3(-halfGroundSize - 1, 0, 0),
+                               btVector3(0, 1, 0), btRadians(90.f), 0.f, 0.0f);
 
     GLuint wallModelMatrixID = glGetUniformLocation(worldProgramID, "M");
-    GLuint wallVertexPositionID = glGetAttribLocation(worldProgramID, "vertexPosition_modelspace");
+    GLuint wallVertexPositionID =
+        glGetAttribLocation(worldProgramID, "vertexPosition_modelspace");
     GLuint wallVertexUvID = glGetAttribLocation(worldProgramID, "vertexUV");
-    GLuint wallTextureID = glGetUniformLocation(worldProgramID, "myTextureSampler");
+    GLuint wallTextureID =
+        glGetUniformLocation(worldProgramID, "myTextureSampler");
 
     GLuint wallTexture = loadImage("material/building/wall/wallTexture.png");
 
@@ -138,40 +150,35 @@ bool startGame()
     glGenBuffers(4, wallVertexBuffers);
     for(int i = 0; i < 4; i++)
     {
-    glBindBuffer(GL_ARRAY_BUFFER, wallVertexBuffers[i]);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(wallVertexBufferData),
-                 wallVertexBufferData[i],
-                 GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, wallVertexBuffers[i]);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(wallVertexBufferData),
+                     wallVertexBufferData[i], GL_STATIC_DRAW);
     }
 
     GLuint wallUvBuffer;
     glGenBuffers(1, &wallUvBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, wallUvBuffer);
-    glBufferData(GL_ARRAY_BUFFER,
-                 sizeof(wallUvBufferData),
-                 wallUvBufferData, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(wallUvBufferData), wallUvBufferData,
+                 GL_STATIC_DRAW);
 
     // Configure characters
-    Player player;
-    auto playerBodyItr = dynamicsWorld.addRigidBody(
-        CAPSULE, player.getCharBody().getHalfExtents(),
-        player.getCharBody().getMass(), btVector3(0, 0, 0), btVector3(0, 20, 0),
-        btVector3(0, 1, 0), 0, 0.9f, 0.7f);
-    ComputeMatrices worldMatrices(window, player, playerBodyItr);
+    Character player(*(dynamicsWorld.addRigidBody(
+                           CAPSULE, btVector3(10,20,10),
+                           60.f, btVector3(0, 0, 0), btVector3(0, 20, 0),
+                           btVector3(0, 1, 0), 0.f, 0.9f, 0.7f)), 100, 100, 20);
+    ComputeMatrices worldMatrices(window, player);
 
     unsigned int numEnemies = 4;
     btVector3 enemySpawnPoint[] = {
-        btVector3(100, 40, 100), btVector3(100, 40, -100),
-        btVector3(-100, 40, 100), btVector3(-100, 40, -100)};
-    Enemy enemies[numEnemies];
-    std::list<DynamicsWorld::ObjectData>::iterator enemyBodyItrs[numEnemies];
+        btVector3(500, 40, 500), btVector3(500, 40, -500),
+        btVector3(-500, 40, 500), btVector3(-500, 40, -500)};
+
+    std::vector<Character> enemies;
     for(int i = 0; i < numEnemies; i++)
     {
-        enemyBodyItrs[i] = dynamicsWorld.addRigidBody(
-            CAPSULE, enemies[i].getCharBody().getHalfExtents(),
-            enemies[i].getCharBody().getMass(), btVector3(0, 0, 0),
-            enemySpawnPoint[i], btVector3(0, 1, 0), 0, 0.8f, 0.7f);
+        enemies.emplace_back(*(dynamicsWorld.addRigidBody(
+            CAPSULE, btVector3(10, 20, 10), 60.f, btVector3(0, 0, 0),
+            enemySpawnPoint[i], btVector3(0, 1, 0), 0, 0.8f, 0.7f)), 100, 90, 20);
     }
 
     loadOBJ enemyObj("material/monster/buba.obj");
@@ -337,8 +344,9 @@ bool startGame()
     double lastTime = glfwGetTime();
     do
     {
+        //        moveEnemies(enemyBodyItrs,playerBodyItr);
         double deltaTime = getDeltaTime(&lastTime);
-        dynamicsWorld.getDynamicsWorld().stepSimulation(deltaTime);
+        dynamicsWorld.getDynamicsWorld().stepSimulation(deltaTime, 3);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
         //        glEnable(GL_CULL_FACE);
@@ -353,7 +361,6 @@ bool startGame()
 
         glm::mat4 worldProjectionMatrix = worldMatrices.getProjectionMatrix();
         glm::mat4 worldViewMatrix = worldMatrices.getViewMatrix();
-
 
         glUniformMatrix4fv(worldProjectionMatrixID, 1, GL_FALSE,
                            &worldProjectionMatrix[0][0]);
@@ -389,13 +396,15 @@ bool startGame()
 
         glm::mat4 wallModelMatrix(1.f);
 
-        glUniformMatrix4fv(wallModelMatrixID, 1, GL_FALSE, &wallModelMatrix[0][0]);
+        glUniformMatrix4fv(wallModelMatrixID, 1, GL_FALSE,
+                           &wallModelMatrix[0][0]);
 
         for(int i : wallVertexBuffers)
         {
             glEnableVertexAttribArray(wallVertexPositionID);
             glBindBuffer(GL_ARRAY_BUFFER, i);
-            glVertexAttribPointer(wallVertexPositionID, 3, GL_FLOAT, GL_FALSE, 0, static_cast<GLvoid*>(0));
+            glVertexAttribPointer(wallVertexPositionID, 3, GL_FLOAT, GL_FALSE,
+                                  0, static_cast<GLvoid*>(0));
 
             glBindTexture(GL_TEXTURE_2D, wallTexture);
             glUniform1i(wallTextureID, 0);
@@ -412,17 +421,17 @@ bool startGame()
         }
 
         // Draw enemies
-
         for(int i = 0; i < numEnemies; i++)
         {
+            enemies[i].moveTowardTarget(player);
             glm::vec3 enemyPos(
-                enemyBodyItrs[i]->body.getCenterOfMassPosition().x(),
-                enemyBodyItrs[i]->body.getCenterOfMassPosition().y(),
-                enemyBodyItrs[i]->body.getCenterOfMassPosition().z());
+                enemies[i].getObjectData().body.getCenterOfMassPosition().x(),
+                enemies[i].getObjectData().body.getCenterOfMassPosition().y(),
+                enemies[i].getObjectData().body.getCenterOfMassPosition().z());
             glm::mat4 enemyModelMatrix =
                 glm::translate(enemyPos) *
-                glm::rotate(atan2(enemyPos.x, enemyPos.y), glm::vec3(0, 1, 0)) *
-                glm::scale(glm::vec3(0.05f, 0.05f, 0.05f));
+                glm::rotate(atan2(enemies[i].getObjectData().body.getLinearVelocity().x(), enemies[i].getObjectData().body.getLinearVelocity().y()), glm::vec3(0, 1, 0)) *
+                glm::scale(glm::vec3(0.1f, 0.1f, 0.1f));
 
             glUniformMatrix4fv(enemyModelMatrixID, 1, GL_FALSE,
                                &enemyModelMatrix[0][0]);
@@ -443,7 +452,7 @@ bool startGame()
 
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, enemyElementBuffer);
             glDrawElements(enemyObj.getPolygonType(),
-                           enemyObj.getIndices().size(), GL_UNSIGNED_SHORT,
+                          enemyObj.getIndices().size(), GL_UNSIGNED_SHORT,
                            nullptr);
 
             glDisableVertexAttribArray(enemyVertexPositionID);

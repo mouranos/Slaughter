@@ -1,40 +1,28 @@
 #ifndef CHARACTER_H
 #define CHARACTER_H
-#include <btBulletDynamicsCommon.h>
 #include <stdio.h>
+#include <btBulletDynamicsCommon.h>
+#include "util/bulletgenobj.h"
+
 
 class Character
 {
 public:
-    struct CharacterBody
-    {
-    public:
-        CharacterBody(btVector3 halfExtents, btScalar mass);
-        btVector3 getHalfExtents();
-        btScalar getMass();
-        btVector3 getPosition();
-    private:
-        btVector3 halfExtents_;
-        btScalar mass_;
-    };
-    Character(int hp, int speed, int power, btVector3 halfExtents,
-              btScalar mass);
+    Character(DynamicsWorld::ObjectData& characterData, int hp, int speed, int power);
     int getHp();
+    void setHp(int);
     int getPower();
+    void setPower(int);
     int getMaxSpeed();
-    void halveMaxSpeed();
-    void doubleMaxSpeed();
-    btVector3 getDirection();
-    CharacterBody getCharBody();
+    void setMaxSpeed(int);
+    DynamicsWorld::ObjectData& getObjectData();
+    void moveTowardTarget(Character target);
 
-
-protected:
+private:
     int hp_;
     int maxSpeed_;
     int power_;
-    CharacterBody charBody_;
-    btScalar turnSpeed_;
-    btVector3 direction_;
+    DynamicsWorld::ObjectData& characterData_;
 };
 
 #endif
